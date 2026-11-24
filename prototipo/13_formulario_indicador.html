@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Formulario de indicador · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="13">
+  <main id="contenido">
+    <p class="migas"><a href="12_lista_indicadores.html">Indicadores</a> › <span id="miga">Nuevo indicador</span></p>
+    <h1 id="titulo">Nuevo indicador</h1>
+    <p class="texto-2">Los campos con asterisco (*) son obligatorios.</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" class="tarjeta formulario" novalidate>
+      <div class="campo">
+        <label for="nombre">Nombre *</label>
+        <input id="nombre" type="text" autocomplete="off">
+        <span class="ayuda">De 1 a 200 caracteres.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="programa">Programa *</label>
+          <select id="programa"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="rem">Código REM *</label>
+          <input id="rem" type="text" autocomplete="off">
+          <span class="ayuda">Hasta 20 caracteres. Por ejemplo: IND-01.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="num">Celda del numerador *</label>
+          <input id="num" type="text" autocomplete="off" placeholder="B12">
+          <span class="ayuda">Referencia de celda de Excel: letras y número, por ejemplo B12.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="origen">Origen del denominador *</label>
+          <select id="origen"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+
+      <div class="campo" style="max-width:360px">
+        <label for="den">Celda del denominador</label>
+        <input id="den" type="text" autocomplete="off" placeholder="C12">
+        <span class="ayuda" id="ayuda-den">Obligatoria cuando el origen es REM.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+
+      <div class="fila">
+        <div class="campo">
+          <label for="meta">Meta nacional (%) *</label>
+          <input id="meta" type="text" inputmode="decimal" autocomplete="off" placeholder="80">
+          <span class="ayuda">Número desde 0, con hasta 2 decimales.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="peso">Peso relativo *</label>
+          <input id="peso" type="text" inputmode="decimal" autocomplete="off" placeholder="10">
+          <span class="ayuda">Número de 0 a 100, con hasta 2 decimales.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+
+      <h2 style="margin-top:8px">Datos opcionales</h2>
+      <div class="fila">
+        <div class="campo">
+          <label for="seccion">Sección</label>
+          <input id="seccion" type="text" autocomplete="off">
+          <span class="ayuda">Hasta 50 caracteres.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="prestacion">Código de prestación</label>
+          <input id="prestacion" type="text" autocomplete="off">
+          <span class="ayuda">Hasta 50 caracteres.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="referente">Referente responsable</label>
+        <input id="referente" type="text" autocomplete="off">
+        <span class="ayuda">Hasta 100 caracteres.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="campo">
+        <label><input type="checkbox" id="activo" checked> Indicador activo</label>
+      </div>
+
+      <div class="acciones">
+        <button type="submit" class="btn btn-primario">Guardar</button>
+        <a class="btn btn-secundario" href="12_lista_indicadores.html">Cancelar</a>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    var D = MS.datos, $ = function (id) { return document.getElementById(id); };
+    var form = $('form');
+    var nombre = $('nombre'), programa = $('programa'), rem = $('rem'), num = $('num'), origen = $('origen'), den = $('den');
+    var meta = $('meta'), peso = $('peso'), seccion = $('seccion'), prestacion = $('prestacion'), referente = $('referente'), activo = $('activo');
+
+    MS.opciones(programa, D.PROGRAMAS, '', 'Seleccione un programa');
+    MS.opciones(origen, [{ valor: 'REM', texto: 'REM (celda de la planilla)' }, { valor: 'POBLACION', texto: 'Población (se ingresa a mano)' }], '', 'Seleccione el origen');
+
+    // Edición: se cargan los datos del indicador elegido en la lista
+    var idEdicion = MS.param('id');
+    if (idEdicion !== null) {
+      var ind = MS.indicadorPorId(idEdicion);
+      if (!ind) {
+        MS.aviso('error', 'Indicador no encontrado');
+        form.hidden = true;
+      } else {
+        $('titulo').textContent = 'Editar indicador'; $('miga').textContent = ind.codigo;
+        nombre.value = ind.nombre; programa.value = ind.programa; rem.value = ind.codigo; num.value = ind.celdaNum; origen.value = ind.origen;
+        den.value = ind.celdaDen; meta.value = String(ind.meta); peso.value = String(ind.peso);
+        seccion.value = ind.seccion; prestacion.value = ind.prestacion; referente.value = ind.referente; activo.checked = ind.activo;
+      }
+    }
+
+    // Con origen "Población" la celda del denominador queda vacía y deshabilitada
+    function ajustarDenominador() {
+      var pob = origen.value === 'POBLACION';
+      if (pob) { den.value = ''; MS.error(den, ''); }
+      den.disabled = pob;
+      $('ayuda-den').textContent = pob ? 'No se usa: la población se ingresa a mano en la pantalla de ingreso de población.' : 'Obligatoria cuando el origen es REM.';
+    }
+    origen.addEventListener('change', ajustarDenominador);
+    ajustarDenominador();
+
+    MS.formulario(form, {
+      textoOcupado: 'Guardando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true;
+        function falla(campo, mensaje) { MS.error(campo, mensaje); ok = false; }
+        if (!MS.V.largo(nombre.value, 1, 200)) { falla(nombre, 'Escriba un nombre de 1 a 200 caracteres'); }
+        if (programa.value === '') { falla(programa, 'Seleccione un programa'); }
+        if (!MS.V.largo(rem.value, 1, 20)) { falla(rem, 'Escriba un código REM de 1 a 20 caracteres'); }
+        if (!MS.V.celdaExcel(num.value)) { falla(num, 'Escriba una celda de Excel válida, por ejemplo B12 (no 12B ni B-12)'); }
+        if (origen.value === '') { falla(origen, 'Seleccione el origen del denominador'); }
+        if (origen.value === 'REM' && !MS.V.celdaExcel(den.value)) { falla(den, 'Con origen REM, escriba la celda del denominador, por ejemplo C12'); }
+        if (!MS.V.decimal(meta.value, 0, 99999.99)) { falla(meta, 'Ingrese un número desde 0, con hasta 2 decimales'); }
+        if (!MS.V.decimal(peso.value, 0, 100)) { falla(peso, 'Ingrese un número de 0 a 100, con hasta 2 decimales'); }
+        if (seccion.value.length > 50) { falla(seccion, 'Escriba como máximo 50 caracteres'); }
+        if (prestacion.value.length > 50) { falla(prestacion, 'Escriba como máximo 50 caracteres'); }
+        if (referente.value.length > 100) { falla(referente, 'Escriba como máximo 100 caracteres'); }
+        return ok;
+      },
+      procesar: function () {
+        MS.aviso('exito', 'Indicador guardado. En la auditoría quedan el valor anterior y el nuevo (demostración: el prototipo no conserva el cambio).');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="04">
+  <main id="contenido">
+    <h1>Dashboard</h1>
+    <p class="texto-2">Cumplimiento de las metas sanitarias por período. Las cifras son inventadas.</p>
+
+    <section class="tarjeta" aria-label="Filtros">
+      <div class="filtros">
+        <div class="campo">
+          <label for="periodo">Período</label>
+          <select id="periodo"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="programa">Programa</label>
+          <select id="programa"></select>
+        </div>
+      </div>
+    </section>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <div id="resultado"></div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var selPeriodo = document.getElementById('periodo'), selPrograma = document.getElementById('programa');
+    // Lista Período: solo se elige, no se puede escribir. Los meses sin carga muestran "Sin datos para el período".
+    MS.opciones(selPeriodo, D.PERIODOS.map(function (p) { return { valor: p, texto: p }; }), MS.param('p') || '2026-06');
+    MS.opciones(selPrograma, ['Todos'].concat(D.PROGRAMAS), 'Todos');
+
+    function render() {
+      var cont = document.getElementById('resultado');
+      MS.vaciar(cont); MS.aviso(null);
+      var periodo = selPeriodo.value;
+      if (D.PERIODOS_CON_DATOS.indexOf(periodo) < 0) { MS.aviso('info', 'Sin datos para el período'); return; }
+
+      var filas = MS.indicadoresVisibles(selPrograma.value).map(function (i) { return MS.resultado(i.id, periodo); });
+      var cuenta = { cumple: 0, riesgo: 0, nocumple: 0 }, sinPob = 0;
+      filas.forEach(function (r) { if (r.sinPoblacion) { sinPob++; } else { cuenta[r.estado]++; } });
+
+      if (sinPob > 0) {
+        var puede = MS.rol === 'subdireccion' || MS.rol === 'gestor';
+        MS.aviso('alerta', 'Falta ingresar la población de ' + sinPob + ' indicador' + (sinPob > 1 ? 'es' : '') +
+          ': su resultado no se calcula hasta ingresarla.' + (puede ? '' : ' Pídala a la Subdirección o al Gestor de Información.'));
+        if (puede) {
+          var av = document.querySelector('#aviso .aviso-texto');
+          av.appendChild(document.createTextNode(' '));
+          av.appendChild(h('a', { href: '11_ingreso_poblacion.html', texto: 'Ingresar población' }));
+          MS.reescribirEnlaces(av);
+        }
+      }
+
+      cont.appendChild(h('div', { class: 'tarjetas' },
+        h('div', { class: 'tarjeta-dato cumple' }, h('div', { class: 'cifra', texto: cuenta.cumple }), 'Indicadores que cumplen'),
+        h('div', { class: 'tarjeta-dato riesgo' }, h('div', { class: 'cifra', texto: cuenta.riesgo }), 'Indicadores en riesgo'),
+        h('div', { class: 'tarjeta-dato nocumple' }, h('div', { class: 'cifra', texto: cuenta.nocumple }), 'Indicadores que no cumplen')));
+
+      // Gráfico de barras: cada barra es el % logrado; la línea oscura marca la meta
+      var grafico = h('div', { class: 'grafico', role: 'img', 'aria-label': 'Gráfico de barras con el porcentaje logrado de cada indicador y su meta' });
+      filas.forEach(function (r) {
+        var ind = r.ind, pista = h('div', { class: 'barra-pista' });
+        if (r.sinPoblacion) {
+          pista.appendChild(h('div', { class: 'barra-relleno neutro', style: 'width:0' }));
+        } else {
+          pista.appendChild(h('div', { class: 'barra-relleno ' + r.estado, style: 'width:' + r.pct + '%' }));
+        }
+        pista.appendChild(h('div', { class: 'barra-meta', style: 'left:' + ind.meta + '%', title: 'Meta ' + ind.meta + ' %' }));
+        grafico.appendChild(h('div', { class: 'barra-fila' },
+          h('span', { class: 'barra-nombre', texto: ind.nombre }), pista,
+          h('span', { class: 'barra-valor', texto: r.sinPoblacion ? 'Sin dato' : r.pct + ' %' })));
+      });
+      cont.appendChild(h('section', { class: 'tarjeta' }, h('h2', { texto: 'Resultado por indicador, ' + MS.nombrePeriodo(periodo) }), grafico,
+        h('div', { class: 'leyenda' }, h('span', { class: 'l-cumple', texto: 'Cumple' }), h('span', { class: 'l-riesgo', texto: 'En riesgo' }),
+          h('span', { class: 'l-nocumple', texto: 'No cumple' }), h('span', { class: 'l-meta', texto: 'Meta' }))));
+
+      // Tabla de detalle
+      var cuerpo = h('tbody');
+      filas.forEach(function (r) {
+        var ind = r.ind;
+        cuerpo.appendChild(h('tr', null,
+          h('td', null, h('a', { href: '07_detalle_indicador.html?id=' + ind.id + '&p=' + periodo, texto: ind.nombre })),
+          h('td', { texto: ind.programa }),
+          h('td', { class: 'num', texto: ind.meta + ' %' }),
+          h('td', { class: 'num', texto: r.sinPoblacion ? 'Falta ingresar la población' : r.pct + ' %' }),
+          h('td', null, r.sinPoblacion ? h('span', { class: 'chip neutro', texto: 'Sin población' }) : MS.chip(r.estado))));
+      });
+      cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', { texto: 'Indicador' }), h('th', { texto: 'Programa' }), h('th', { class: 'num', texto: 'Meta' }),
+          h('th', { class: 'num', texto: 'Resultado' }), h('th', { texto: 'Estado' }))), cuerpo)));
+      MS.reescribirEnlaces(cont);
+    }
+    selPeriodo.addEventListener('change', render);
+    selPrograma.addEventListener('change', render);
+    render();
+  </script>
+</body>
+</html>

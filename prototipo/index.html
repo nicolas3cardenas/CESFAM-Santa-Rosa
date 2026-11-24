@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prototipo de pantallas · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body class="acceso ancho" data-pagina="00">
+  <main id="contenido">
+    <div data-logo class="logo-grande"></div>
+    <h1>Prototipo de pantallas</h1>
+    <p class="texto-2">Sistema web de metas sanitarias e indicadores IAAPS del CESFAM Santa Rosa. Es un prototipo <strong>no funcional</strong>: las pantallas se ven y se navegan, pero no hay servidor, base de datos ni internet, y todas las cifras son inventadas.</p>
+
+    <h2 style="margin-top:24px">1. Entrar con un rol</h2>
+    <p class="texto-2 pequeno">Cada rol ve un menú distinto. Si un rol intenta abrir una pantalla que no le corresponde, llega a la pantalla 17 (Acceso denegado).</p>
+    <div class="tarjetas">
+      <div class="tarjeta-dato">
+        <h3>Directora</h3>
+        <p class="texto-2 pequeno">Dashboard, reportes, comparativo anual y exportar datos.</p>
+        <a class="btn btn-primario" href="04_dashboard.html?u=directora">Entrar como Directora</a>
+      </div>
+      <div class="tarjeta-dato">
+        <h3>Subdirección</h3>
+        <p class="texto-2 pequeno">Lo de la Directora más carga de REM, ingreso de población e indicadores.</p>
+        <a class="btn btn-primario" href="04_dashboard.html?u=subdireccion">Entrar como Subdirección</a>
+      </div>
+      <div class="tarjeta-dato">
+        <h3>Gestor de Información</h3>
+        <p class="texto-2 pequeno">Carga de REM, ingreso de población, indicadores, usuarios y auditoría.</p>
+        <a class="btn btn-primario" href="09_carga_rem.html?u=gestor">Entrar como Gestor de Información</a>
+      </div>
+      <div class="tarjeta-dato">
+        <h3>Jefe de Programa</h3>
+        <p class="texto-2 pequeno">Reportes y exportar datos, solo de su programa (Matronas).</p>
+        <a class="btn btn-primario" href="05_reportes.html?u=jefe">Entrar como Jefe de Programa</a>
+      </div>
+    </div>
+    <p><a href="01_inicio_sesion.html">O comience por el inicio de sesión (pantalla 1)</a></p>
+
+    <h2 style="margin-top:24px">2. Las 17 pantallas</h2>
+    <div class="tabla-contenedor">
+      <table>
+        <thead><tr><th>N.º</th><th>Pantalla</th><th>Quién puede abrirla</th><th>Abrir como</th></tr></thead>
+        <tbody>
+        <tr><td>01</td><td>Inicio de sesión</td><td>Cualquier persona (sin iniciar sesión)</td><td><a href="01_inicio_sesion.html">Abrir</a></td></tr>
+        <tr><td>02</td><td>Olvidé mi contraseña</td><td>Cualquier persona (sin iniciar sesión)</td><td><a href="02_olvide_contrasena.html">Abrir</a></td></tr>
+        <tr><td>03</td><td>Cambiar contraseña</td><td>Los cuatro roles</td><td><a href="03_cambiar_contrasena.html?u=directora">Directora</a> · <a href="03_cambiar_contrasena.html?u=subdireccion">Subdirección</a> · <a href="03_cambiar_contrasena.html?u=gestor">Gestor de Información</a> · <a href="03_cambiar_contrasena.html?u=jefe">Jefe de Programa</a></td></tr>
+        <tr><td>04</td><td>Dashboard</td><td>Directora, Subdirección</td><td><a href="04_dashboard.html?u=directora">Directora</a> · <a href="04_dashboard.html?u=subdireccion">Subdirección</a></td></tr>
+        <tr><td>05</td><td>Reportes con filtros</td><td>Directora, Subdirección, Jefe de Programa</td><td><a href="05_reportes.html?u=directora">Directora</a> · <a href="05_reportes.html?u=subdireccion">Subdirección</a> · <a href="05_reportes.html?u=jefe">Jefe de Programa</a></td></tr>
+        <tr><td>06</td><td>Comparativo anual</td><td>Directora, Subdirección</td><td><a href="06_comparativo_anual.html?u=directora">Directora</a> · <a href="06_comparativo_anual.html?u=subdireccion">Subdirección</a></td></tr>
+        <tr><td>07</td><td>Detalle de indicador</td><td>Directora, Subdirección, Jefe de Programa</td><td><a href="07_detalle_indicador.html?u=directora">Directora</a> · <a href="07_detalle_indicador.html?u=subdireccion">Subdirección</a> · <a href="07_detalle_indicador.html?u=jefe">Jefe de Programa</a></td></tr>
+        <tr><td>08</td><td>Exportar datos</td><td>Directora, Subdirección, Jefe de Programa</td><td><a href="08_exportar_datos.html?u=directora">Directora</a> · <a href="08_exportar_datos.html?u=subdireccion">Subdirección</a> · <a href="08_exportar_datos.html?u=jefe">Jefe de Programa</a></td></tr>
+        <tr><td>09</td><td>Carga de REM</td><td>Subdirección, Gestor de Información</td><td><a href="09_carga_rem.html?u=subdireccion">Subdirección</a> · <a href="09_carga_rem.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>10</td><td>Resultado de la validación</td><td>Subdirección, Gestor de Información</td><td><a href="10_resultado_validacion.html?u=subdireccion">Subdirección</a> · <a href="10_resultado_validacion.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>11</td><td>Ingreso de población</td><td>Subdirección, Gestor de Información</td><td><a href="11_ingreso_poblacion.html?u=subdireccion">Subdirección</a> · <a href="11_ingreso_poblacion.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>12</td><td>Lista de indicadores</td><td>Subdirección, Gestor de Información</td><td><a href="12_lista_indicadores.html?u=subdireccion">Subdirección</a> · <a href="12_lista_indicadores.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>13</td><td>Formulario de indicador</td><td>Subdirección, Gestor de Información</td><td><a href="13_formulario_indicador.html?u=subdireccion">Subdirección</a> · <a href="13_formulario_indicador.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>14</td><td>Lista de usuarios</td><td>Gestor de Información</td><td><a href="14_lista_usuarios.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>15</td><td>Formulario de usuario y rol</td><td>Gestor de Información</td><td><a href="15_formulario_usuario.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>16</td><td>Auditoría de cambios</td><td>Gestor de Información</td><td><a href="16_auditoria.html?u=gestor">Gestor de Información</a></td></tr>
+        <tr><td>17</td><td>Acceso denegado</td><td>Los cuatro roles</td><td><a href="17_acceso_denegado.html?u=directora">Directora</a> · <a href="17_acceso_denegado.html?u=subdireccion">Subdirección</a> · <a href="17_acceso_denegado.html?u=gestor">Gestor de Información</a> · <a href="17_acceso_denegado.html?u=jefe">Jefe de Programa</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 style="margin-top:24px">3. Situaciones especiales (para mostrar y probar)</h2>
+    <ul>
+      <li><a href="03_cambiar_contrasena.html?via=enlace">Cambiar contraseña desde el enlace del correo (sin pedir la contraseña actual)</a></li>
+      <li><a href="03_cambiar_contrasena.html?via=vencido">Enlace de recuperación vencido</a></li>
+      <li><a href="04_dashboard.html?u=directora&amp;p=2026-02">Dashboard de un mes sin datos («Sin datos para el período»)</a></li>
+      <li><a href="04_dashboard.html?u=subdireccion">Dashboard con la alerta «Falta ingresar la población» (Subdirección)</a></li>
+      <li><a href="07_detalle_indicador.html?u=jefe&amp;id=1">Detalle de indicador con comentarios, como Jefe de Programa (puede comentar)</a></li>
+      <li><a href="07_detalle_indicador.html?u=jefe&amp;id=3">Un Jefe de Programa abre un indicador de otro programa (lo lleva a Acceso denegado)</a></li>
+      <li><a href="10_resultado_validacion.html?u=gestor&amp;carga=5">Resultado de la validación sin errores</a></li>
+      <li><a href="10_resultado_validacion.html?u=gestor&amp;carga=2">Resultado de la validación con errores</a></li>
+      <li><a href="10_resultado_validacion.html?u=gestor&amp;carga=99">Carga que no existe («Carga no encontrada»)</a></li>
+      <li><a href="13_formulario_indicador.html?u=gestor&amp;id=1">Editar un indicador con origen REM</a></li>
+      <li><a href="13_formulario_indicador.html?u=gestor&amp;id=2">Editar un indicador con origen Población (celda del denominador deshabilitada)</a></li>
+      <li><a href="15_formulario_usuario.html?u=gestor&amp;id=4">Editar un usuario Jefe de Programa</a></li>
+      <li><a href="14_lista_usuarios.html?u=directora">La Directora intenta abrir Usuarios (Acceso denegado)</a></li>
+      <li><a href="09_carga_rem.html?u=jefe">El Jefe de Programa intenta abrir Carga de REM (Acceso denegado)</a></li>
+    </ul>
+
+    <p class="texto-2 pequeno">Para ver la versión de teléfono o de tableta, achique el ancho de la ventana del navegador (menos de 600 px es teléfono; de 600 a 1023 px, tableta).</p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,91 @@
+PROTOTIPO DE PANTALLAS · CESFAM Santa Rosa
+=======================================================
+
+Qué es
+------
+Las 17 pantallas del sistema, hechas con HTML, CSS y un poco de JavaScript.
+Es un prototipo NO funcional: se ven y se navegan como el sistema real, pero
+no hay servidor, base de datos ni internet. Todas las cifras son inventadas.
+No lee el Excel que se sube ni guarda nada: al recargar la pantalla, todo
+vuelve al estado inicial.
+
+
+Cómo abrirlo
+------------
+Opción 1 (la más simple)
+  Doble clic en  index.html. Se abre en Chrome o Edge.
+
+Opción 2 (Visual Studio Code)
+  1. Archivo > Abrir carpeta... y elija la carpeta  prototipo_cesfam_santa_rosa.
+  2. Abra index.html. Para verlo en el navegador, use la extensión
+     "Live Server" (clic derecho en index.html > Open with Live Server).
+     Sin la extensión también sirve: doble clic en index.html desde el
+     explorador de archivos.
+  3. Después de cambiar un archivo, guarde (Ctrl+S) y recargue el navegador (F5).
+
+No necesita instalar Node, ni npm, ni nada más.
+
+
+Cómo se usa
+-----------
+index.html es el mapa: tiene un botón "Entrar como..." para cada rol, la lista
+de las 17 pantallas y enlaces a situaciones especiales (carga con errores,
+enlace vencido, acceso denegado, etc.).
+
+También se puede entrar desde la pantalla 1 (inicio de sesión) con estas
+cuentas de demostración (sirve cualquier contraseña de 8 a 64 caracteres):
+
+  directora@demo.cl       Directora
+  subdireccion@demo.cl    Subdirección
+  gestor@demo.cl          Gestor de Información
+  jefe.matronas@demo.cl   Jefe de Programa (programa Matronas)
+
+Cada rol ve un menú distinto. Si abre una pantalla que no le corresponde,
+llega a la pantalla 17 (Acceso denegado). Esto sigue la matriz de permisos de
+la sección 6.2 del informe.
+
+Para ver la versión de tableta o de teléfono, achique el ancho de la ventana
+del navegador (menos de 600 px = teléfono; de 600 a 1023 px = tableta; desde
+1024 px = computador).
+
+
+Los archivos
+------------
+  index.html                    Mapa del prototipo
+  01_inicio_sesion.html         ... hasta ...
+  17_acceso_denegado.html       Una pantalla por archivo, con su número
+  estilos.css                   Guía de estilo única (sección 4.1 del informe):
+                                colores, tipografías, botones, campos y mensajes.
+                                Los colores están al comienzo, como variables.
+  app.js                        Lo que comparten todas las pantallas: roles y
+                                permisos, menú, validaciones y datos inventados.
+  capturas/                     Imágenes de las 17 pantallas y del dashboard en
+                                los tres anchos, listas para el informe.
+
+
+Qué está simulado y qué no
+--------------------------
+- El rol viaja en la dirección (?u=gestor). Es solo para poder abrir los
+  archivos con doble clic. En el sistema real el rol sale del token JWT y lo
+  verifica el servidor; la pantalla nunca decide los permisos.
+- Las validaciones de cada campo (largos, formatos, rangos, mensajes) son las
+  de los casos de prueba de la sección 7.3. En el sistema real el servidor las
+  repite.
+- Todo botón que guarda, carga, consulta o exporta se deshabilita al primer
+  clic: un doble clic ejecuta la acción una sola vez.
+- Todo texto escrito por una persona se muestra como texto, nunca como código
+  (por eso un comentario con <script> se ve igual que lo escribió).
+- Carga de REM: cualquier archivo .xlsx o .xlsm lleva al resultado correcto.
+  Si el nombre del archivo contiene la palabra "error", el resultado muestra
+  una planilla con errores.
+
+
+Cosas que se pueden cambiar fácilmente
+--------------------------------------
+- Nombre del sistema y del logo: en app.js, las líneas
+      var NOMBRE_SISTEMA = 'CESFAM Santa Rosa';
+      var NOMBRE_SUB = 'Metas sanitarias';
+  (se cambian solo ahí y aparecen en todas las pantallas; el título de la pestaña
+  del navegador está en la línea <title> de cada archivo).
+- Colores: al comienzo de estilos.css (bloque :root).
+- Datos inventados (indicadores, usuarios, auditoría): sección 4 de app.js.

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acceso denegado · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="17">
+  <main id="contenido" class="centrado">
+    <svg class="icono-grande" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/><path d="M12 15v2"/>
+    </svg>
+    <h1>Acceso denegado</h1>
+    <p>No tiene permiso para ver esta pantalla.</p>
+    <p class="texto-2 pequeno">Su rol no incluye esta función. En el sistema real, el servidor responde con el error 403 y no entrega ningún dato de la pantalla bloqueada.</p>
+    <div class="acciones" style="justify-content:center">
+      <a id="volver" class="btn btn-primario" href="04_dashboard.html">Volver al inicio</a>
+    </div>
+  </main>
+
+  <script>
+    // Cada rol vuelve a su pantalla de inicio
+    if (MS.rol) { document.getElementById('volver').setAttribute('href', MS.ROLES[MS.rol].inicio); }
+  </script>
+</body>
+</html>

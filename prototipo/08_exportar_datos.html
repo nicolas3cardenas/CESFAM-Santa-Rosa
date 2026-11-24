@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exportar datos · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="08">
+  <main id="contenido">
+    <h1>Exportar datos</h1>
+    <p class="texto-2">Descargue los resultados de un período en CSV o en Excel (XLSX).</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" class="tarjeta formulario" novalidate>
+      <div class="fila">
+        <div class="campo">
+          <label for="formato">Formato</label>
+          <select id="formato"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="periodo">Período</label>
+          <select id="periodo"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+      <p id="alcance" class="texto-2 pequeno"></p>
+      <button type="submit" class="btn btn-primario">Exportar</button>
+    </form>
+  </main>
+
+  <script>
+    var D = MS.datos;
+    var formato = document.getElementById('formato'), periodo = document.getElementById('periodo');
+    MS.opciones(formato, ['CSV', 'XLSX'], 'CSV');
+    MS.opciones(periodo, D.PERIODOS_CON_DATOS.slice().reverse(), '2026-06');
+    document.getElementById('alcance').textContent = MS.rol === 'jefe'
+      ? 'El archivo incluye solo los indicadores de su programa (' + MS.ROLES.jefe.programa + ').'
+      : 'El archivo incluye los indicadores de todos los programas.';
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Generando archivo…',
+      validar: function () { return true; },
+      procesar: function () {
+        var n = MS.indicadoresVisibles('Todos').length;
+        MS.aviso('exito', 'Archivo reporte_' + periodo.value + '.' + formato.value.toLowerCase() + ' generado con ' + n + ' indicadores (demostración: el prototipo no descarga archivos).');
+      }
+    });
+  </script>
+</body>
+</html>

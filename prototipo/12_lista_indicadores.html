@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Indicadores · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="12">
+  <main id="contenido">
+    <div class="encabezado">
+      <div>
+        <h1>Indicadores</h1>
+        <p class="texto-2" style="margin:0">Indicadores sanitarios y su configuración. Las cifras son inventadas.</p>
+      </div>
+      <a class="btn btn-primario" href="13_formulario_indicador.html">Nuevo indicador</a>
+    </div>
+
+    <form id="form" class="tarjeta" novalidate>
+      <div class="filtros">
+        <div class="campo">
+          <label for="buscar">Buscar</label>
+          <input id="buscar" type="text" placeholder="Nombre o código" autocomplete="off">
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="programa">Programa</label>
+          <select id="programa"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <button type="submit" class="btn btn-primario">Buscar</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <p id="cuenta" class="texto-2 pequeno" aria-live="polite"></p>
+    <div id="resultado"></div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var buscar = document.getElementById('buscar'), programa = document.getElementById('programa');
+    MS.opciones(programa, ['Todos'].concat(D.PROGRAMAS), 'Todos');
+
+    function pintar(texto, prog) {
+      var cont = document.getElementById('resultado');
+      MS.vaciar(cont);
+      // El texto buscado se compara como texto simple: comillas, apóstrofes o signos como < > no tienen efecto especial
+      var q = texto.trim().toLowerCase();
+      var lista = D.INDICADORES.filter(function (i) {
+        return (prog === 'Todos' || i.programa === prog) && (q === '' || i.nombre.toLowerCase().indexOf(q) >= 0 || i.codigo.toLowerCase().indexOf(q) >= 0);
+      });
+      document.getElementById('cuenta').textContent = lista.length + (lista.length === 1 ? ' indicador' : ' indicadores');
+      if (lista.length === 0) {
+        cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('p', { class: 'sin-resultados', texto: 'No hay indicadores que coincidan con la búsqueda.' })));
+        return;
+      }
+      var cuerpo = h('tbody');
+      lista.forEach(function (i) {
+        cuerpo.appendChild(h('tr', null,
+          h('td', { class: 'nw', texto: i.codigo }), h('td', { texto: i.nombre }), h('td', { texto: i.programa }),
+          h('td', { class: 'num', texto: i.meta + ' %' }), h('td', { class: 'num', texto: i.peso }),
+          h('td', { texto: i.origen === 'REM' ? 'REM (celda ' + i.celdaDen + ')' : 'Población ingresada' }),
+          h('td', null, i.activo ? h('span', { class: 'chip cumple' }, h('span', { 'aria-hidden': 'true', texto: '✔' }), 'Activo') : h('span', { class: 'chip neutro', texto: 'Inactivo' })),
+          h('td', { class: 'nw' }, h('a', { class: 'btn btn-secundario btn-pequeno', href: '13_formulario_indicador.html?id=' + i.id, texto: 'Editar' }))));
+      });
+      cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', { texto: 'Código' }), h('th', { texto: 'Indicador' }), h('th', { texto: 'Programa' }), h('th', { class: 'num', texto: 'Meta' }),
+          h('th', { class: 'num', texto: 'Peso' }), h('th', { texto: 'Denominador' }), h('th', { texto: 'Estado' }), h('th', { texto: 'Acción' }))), cuerpo)));
+      MS.reescribirEnlaces(cont);
+    }
+    pintar('', 'Todos');
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Buscando…',
+      demora: 300,
+      validar: function () {
+        MS.aviso(null);
+        if (buscar.value.length > 100) { MS.error(buscar, 'Escriba como máximo 100 caracteres'); return false; }
+        return true;
+      },
+      procesar: function () { pintar(buscar.value, programa.value); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reportes con filtros · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="05">
+  <main id="contenido">
+    <h1>Reportes</h1>
+    <p class="texto-2">Elija los filtros y presione Consultar. Las cifras son inventadas.</p>
+
+    <form id="form" class="tarjeta" novalidate>
+      <div class="filtros">
+        <div class="campo">
+          <label for="mes">Mes</label>
+          <select id="mes"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="desde">Desde</label>
+          <input id="desde" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" autocomplete="off">
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="hasta">Hasta</label>
+          <input id="hasta" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" autocomplete="off">
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="corte">Corte IAAPS</label>
+          <select id="corte"></select>
+        </div>
+        <div class="campo">
+          <label for="programa">Programa</label>
+          <select id="programa"></select>
+        </div>
+      </div>
+      <p class="texto-2 pequeno">Las fechas son opcionales: si las completa, se usa el rango en lugar del mes.</p>
+      <button type="submit" class="btn btn-primario">Consultar</button>
+    </form>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <div id="resultado"></div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var mes = document.getElementById('mes'), desde = document.getElementById('desde'), hasta = document.getElementById('hasta');
+    var corte = document.getElementById('corte'), programa = document.getElementById('programa');
+    var esJefe = MS.rol === 'jefe';
+
+    MS.opciones(mes, D.PERIODOS_CON_DATOS.slice().reverse().map(function (p) { return { valor: p, texto: p }; }), '2026-06');
+    MS.opciones(corte, ['Todos los cortes', 'Corte 1', 'Corte 2', 'Corte 3'], 'Todos los cortes');
+    // El Jefe de Programa ve únicamente su programa; los demás roles, todos
+    MS.opciones(programa, esJefe ? [MS.ROLES.jefe.programa] : ['Todos'].concat(D.PROGRAMAS), esJefe ? MS.ROLES.jefe.programa : 'Todos');
+
+    function mesDeFecha(f) { return f.getFullYear() + '-' + ('0' + (f.getMonth() + 1)).slice(-2); }
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Consultando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true, fd = null, fh = null;
+        if (desde.value !== '' || hasta.value !== '') {
+          fd = MS.V.fecha(desde.value); fh = MS.V.fecha(hasta.value);
+          if (!fd) { MS.error(desde, 'Ingrese una fecha que exista (DD-MM-AAAA)'); ok = false; }
+          if (!fh) { MS.error(hasta, 'Ingrese una fecha que exista (DD-MM-AAAA)'); ok = false; }
+          if (fd && fh && fh < fd) { MS.error(hasta, 'La fecha Hasta no puede ser anterior a Desde'); ok = false; }
+        }
+        return ok;
+      },
+      procesar: function () {
+        var cont = document.getElementById('resultado');
+        MS.vaciar(cont);
+        var inds = MS.indicadoresVisibles(programa.value);
+        var rango = desde.value !== '';
+        var periodos, titulo;
+        if (rango) {
+          var a = mesDeFecha(MS.V.fecha(desde.value)), b = mesDeFecha(MS.V.fecha(hasta.value));
+          periodos = D.PERIODOS_CON_DATOS.filter(function (p) { return p >= a && p <= b; });
+          titulo = 'Del ' + desde.value + ' al ' + hasta.value;
+        } else {
+          periodos = [mes.value];
+          titulo = MS.nombrePeriodo(mes.value);
+        }
+        if (periodos.length === 0) { MS.aviso('info', 'Sin datos para el rango elegido'); return; }
+
+        var cabecera = h('tr', null, h('th', { texto: 'Indicador' }), h('th', { texto: 'Programa' }), h('th', { class: 'num', texto: 'Meta' }));
+        periodos.forEach(function (p) { cabecera.appendChild(h('th', { class: 'num', texto: p })); });
+        if (!rango) { cabecera.appendChild(h('th', { texto: 'Estado' })); }
+        var cuerpo = h('tbody');
+        inds.forEach(function (ind) {
+          var fila = h('tr', null,
+            h('td', null, h('a', { href: '07_detalle_indicador.html?id=' + ind.id + '&p=' + periodos[periodos.length - 1], texto: ind.nombre })),
+            h('td', { texto: ind.programa }), h('td', { class: 'num', texto: ind.meta + ' %' }));
+          periodos.forEach(function (p) {
+            var r = MS.resultado(ind.id, p);
+            fila.appendChild(h('td', { class: 'num', texto: !r ? '—' : (r.sinPoblacion ? 'Falta población' : r.pct + ' %') }));
+          });
+          if (!rango) {
+            var r1 = MS.resultado(ind.id, periodos[0]);
+            fila.appendChild(h('td', null, !r1 ? h('span', { class: 'chip neutro', texto: 'Sin datos' }) : (r1.sinPoblacion ? h('span', { class: 'chip neutro', texto: 'Sin población' }) : MS.chip(r1.estado))));
+          }
+          cuerpo.appendChild(fila);
+        });
+        cont.appendChild(h('section', { class: 'tarjeta' },
+          h('h2', { texto: 'Resultados: ' + titulo }),
+          h('p', { class: 'texto-2 pequeno', texto: 'Programa: ' + programa.value + ' · ' + corte.value }),
+          h('div', { class: 'tabla-contenedor' }, h('table', null, h('thead', null, cabecera), cuerpo))));
+        MS.reescribirEnlaces(cont);
+      }
+    });
+  </script>
+</body>
+</html>

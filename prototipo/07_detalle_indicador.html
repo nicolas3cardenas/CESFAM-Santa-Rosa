@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle de indicador · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="07">
+  <main id="contenido">
+    <p class="migas"><a href="05_reportes.html">Reportes</a> › Detalle del indicador</p>
+    <h1 id="titulo">Detalle del indicador</h1>
+    <p id="subtitulo" class="texto-2"></p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <div class="dos-columnas">
+      <section class="tarjeta" aria-label="Cálculo del indicador">
+        <div class="campo" style="max-width:240px">
+          <label for="periodo">Período</label>
+          <select id="periodo"></select>
+        </div>
+        <dl class="datos" id="datos"></dl>
+        <div id="evolucion" style="margin-top:16px"></div>
+      </section>
+
+      <section class="tarjeta" aria-label="Comentarios">
+        <h2>Comentarios del Jefe de Programa</h2>
+        <ul class="comentarios" id="lista-comentarios"></ul>
+
+        <form id="form" novalidate hidden>
+          <div class="campo">
+            <label for="comentario">Escriba un comentario</label>
+            <textarea id="comentario" placeholder="Por ejemplo: según mis registros el resultado es distinto"></textarea>
+            <div class="contador" id="contador">0 / 500</div>
+            <p class="campo-error" role="alert"></p>
+          </div>
+          <button type="submit" class="btn btn-primario">Publicar comentario</button>
+        </form>
+        <p id="nota-lectura" class="texto-2 pequeno" hidden>Solo el Jefe de Programa puede comentar un indicador de su programa.</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    var h = MS.h, D = MS.datos;
+    var ind = MS.indicadorPorId(MS.param('id') || 1);
+    // El Jefe de Programa solo abre indicadores de su programa; si pide otro, se muestra la pantalla 17
+    if (!ind || (MS.rol === 'jefe' && ind.programa !== MS.ROLES.jefe.programa)) { MS.denegar('07'); return; }
+
+    var selPeriodo = document.getElementById('periodo');
+    MS.opciones(selPeriodo, D.PERIODOS_CON_DATOS.slice().reverse(), MS.param('p') && D.PERIODOS_CON_DATOS.indexOf(MS.param('p')) >= 0 ? MS.param('p') : '2026-06');
+    document.getElementById('titulo').textContent = ind.nombre;
+    document.getElementById('subtitulo').textContent = ind.codigo + ' · Programa ' + ind.programa;
+
+    function dato(dt, dd) { return [h('dt', { texto: dt }), dd instanceof Node ? h('dd', null, dd) : h('dd', { texto: dd })]; }
+    function pintar() {
+      var periodo = selPeriodo.value, r = MS.resultado(ind.id, periodo), dl = document.getElementById('datos');
+      MS.vaciar(dl); MS.aviso(null);
+      var origen = ind.origen === 'REM' ? 'Celda ' + ind.celdaDen + ' del REM' : 'Población ingresada a mano';
+      var filas = [dato('Meta', ind.meta + ' %'), dato('Peso relativo', ind.peso), dato('Numerador', 'Celda ' + ind.celdaNum + ' del REM'), dato('Origen del denominador', origen)];
+      if (r.sinPoblacion) {
+        MS.aviso('alerta', 'Falta ingresar la población');
+        if (MS.rol === 'subdireccion' || MS.rol === 'gestor') {
+          var av = document.querySelector('#aviso .aviso-texto');
+          av.appendChild(document.createTextNode(' '));
+          av.appendChild(h('a', { href: '11_ingreso_poblacion.html', texto: 'Ingresar población' }));
+          MS.reescribirEnlaces(av);
+        }
+        filas.push(dato('Resultado', h('span', { class: 'chip neutro', texto: 'Sin población' })));
+      } else {
+        filas.push(dato('Numerador del período', MS.fmt(r.num)), dato('Denominador del período', MS.fmt(r.den)), dato('Resultado', r.pct + ' %'), dato('Estado', MS.chip(r.estado)));
+      }
+      filas.forEach(function (par) { par.forEach(function (n) { dl.appendChild(n); }); });
+
+      var ev = document.getElementById('evolucion');
+      MS.vaciar(ev);
+      ev.appendChild(h('h3', { texto: 'Evolución mensual' }));
+      var graf = h('div', { class: 'grafico' });
+      D.PERIODOS_CON_DATOS.forEach(function (p) {
+        var x = MS.resultado(ind.id, p);
+        var pista = h('div', { class: 'barra-pista' });
+        if (x && !x.sinPoblacion) { pista.appendChild(h('div', { class: 'barra-relleno ' + x.estado, style: 'width:' + x.pct + '%' })); }
+        pista.appendChild(h('div', { class: 'barra-meta', style: 'left:' + ind.meta + '%' }));
+        graf.appendChild(h('div', { class: 'barra-fila' }, h('span', { class: 'barra-nombre', texto: p }), pista,
+          h('span', { class: 'barra-valor', texto: x && !x.sinPoblacion ? x.pct + ' %' : 'Sin dato' })));
+      });
+      ev.appendChild(graf);
+    }
+    selPeriodo.addEventListener('change', pintar);
+    pintar();
+
+    // Comentarios: todo texto escrito por una persona se muestra como texto (textContent), nunca como código
+    var lista = document.getElementById('lista-comentarios');
+    function agregar(c, alInicio) {
+      var li = h('li', { class: 'comentario' }, h('div', { class: 'meta', texto: c.autor + ' · ' + c.fecha + ' · ' + c.periodo }), h('div', { class: 'texto', texto: c.texto }));
+      if (alInicio && lista.firstChild) { lista.insertBefore(li, lista.firstChild); } else { lista.appendChild(li); }
+    }
+    (D.COMENTARIOS[ind.id] || []).forEach(function (c) { agregar(c, false); });
+    if (!lista.firstChild) { lista.appendChild(h('li', { class: 'texto-2', id: 'sin-comentarios', texto: 'Este indicador todavía no tiene comentarios.' })); }
+
+    var form = document.getElementById('form'), caja = document.getElementById('comentario');
+    if (MS.rol === 'jefe') { form.hidden = false; } else { document.getElementById('nota-lectura').hidden = false; }
+    caja.addEventListener('input', function () { document.getElementById('contador').textContent = caja.value.length + ' / 500'; });
+    MS.formulario(form, {
+      textoOcupado: 'Publicando…',
+      validar: function () {
+        if (!MS.V.largo(caja.value, 1, 500)) { MS.error(caja, 'Escriba un comentario de 1 a 500 caracteres'); return false; }
+        return true;
+      },
+      procesar: function () {
+        var sin = document.getElementById('sin-comentarios'); if (sin) { sin.remove(); }
+        var ahora = new Date(), p2 = function (n) { return ('0' + n).slice(-2); };
+        agregar({ autor: MS.ROLES.jefe.usuario, fecha: p2(ahora.getDate()) + '-' + p2(ahora.getMonth() + 1) + '-' + ahora.getFullYear() + ' ' + p2(ahora.getHours()) + ':' + p2(ahora.getMinutes()), periodo: selPeriodo.value, texto: caja.value }, true);
+        form.reset(); document.getElementById('contador').textContent = '0 / 500';
+        MS.aviso('exito', 'Comentario publicado. El prototipo no lo guarda: al recargar la pantalla desaparece.');
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cambiar contraseña · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="03">
+  <main id="contenido">
+    <div id="logo-acceso" class="centrado" hidden><div data-logo class="logo-grande"></div></div>
+    <h1>Cambiar contraseña</h1>
+    <p id="bajada" class="texto-2">Elija una contraseña nueva de 8 a 64 caracteres, distinta de la actual.</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" class="formulario" novalidate>
+      <div class="campo" id="caja-actual">
+        <label for="actual">Contraseña actual</label>
+        <input id="actual" type="password" autocomplete="current-password">
+        <span class="ayuda">Demostración: es la contraseña con la que inició sesión.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="campo">
+        <label for="nueva">Contraseña nueva</label>
+        <input id="nueva" type="password" autocomplete="new-password">
+        <span class="ayuda">De 8 a 64 caracteres.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="campo">
+        <label for="confirmar">Confirmar contraseña</label>
+        <input id="confirmar" type="password" autocomplete="new-password">
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="acciones">
+        <button type="submit" class="btn btn-primario">Guardar</button>
+        <a id="cancelar" class="btn btn-secundario" href="04_dashboard.html">Cancelar</a>
+      </div>
+    </form>
+
+    <div class="enlaces" id="enlaces-acceso" hidden>
+      <a href="01_inicio_sesion.html">Ir al inicio de sesión</a>
+      <a href="02_olvide_contrasena.html">Solicitar un enlace nuevo</a>
+    </div>
+  </main>
+
+  <script>
+    var via = MS.param('via');                        // enlace = viene del correo; vencido = enlace caducado
+    var actual = document.getElementById('actual'), nueva = document.getElementById('nueva'), confirmar = document.getElementById('confirmar');
+    var form = document.getElementById('form');
+
+    if (via === 'enlace' || via === 'vencido') {
+      document.getElementById('logo-acceso').hidden = false;
+      document.getElementById('caja-actual').hidden = true;          // con el enlace no se pide la contraseña actual
+      document.getElementById('cancelar').setAttribute('href', '01_inicio_sesion.html');
+      document.getElementById('enlaces-acceso').hidden = false;
+    } else if (MS.rol) {
+      document.getElementById('cancelar').setAttribute('href', MS.ROLES[MS.rol].inicio);
+    }
+    if (via === 'vencido') {                                           // enlace vencido, usado o alterado
+      MS.aviso('error', 'Enlace no válido. Solicite uno nuevo.');
+      Array.prototype.forEach.call(form.querySelectorAll('input, button[type="submit"]'), function (el) { el.disabled = true; });
+    }
+
+    MS.formulario(form, {
+      validar: function () {
+        MS.aviso(null);
+        var ok = true, conActual = !document.getElementById('caja-actual').hidden;
+        if (conActual) {
+          if (actual.value === '') { MS.error(actual, 'Ingrese su contraseña actual'); ok = false; }
+          else if (!MS.claveActualCoincide(actual.value)) { MS.error(actual, 'La contraseña actual no es correcta'); ok = false; }
+        }
+        if (!MS.V.clave(nueva.value)) { MS.error(nueva, 'La contraseña nueva debe tener entre 8 y 64 caracteres'); ok = false; }
+        else if (conActual && nueva.value === actual.value) { MS.error(nueva, 'La contraseña nueva debe ser distinta de la actual'); ok = false; }
+        if (confirmar.value !== nueva.value) { MS.error(confirmar, 'Las contraseñas no coinciden'); ok = false; }
+        return ok;
+      },
+      procesar: function () {
+        MS.aviso('exito', 'Contraseña actualizada. En el sistema real la sesión anterior se cierra y se registra el cambio en la auditoría.');
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>

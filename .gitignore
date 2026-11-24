@@ -1,0 +1,8 @@
+node_modules/
+.env
+resultados/
+coverage/
+*.log
+backend/datos_demo/
+.DS_Store
+Thumbs.db

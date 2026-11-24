@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carga de REM · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="09">
+  <main id="contenido">
+    <h1>Carga de REM</h1>
+    <p class="texto-2">Suba la planilla REM del mes. El sistema la revisa y le muestra el resultado de la validación.</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" class="tarjeta formulario" novalidate>
+      <div class="campo">
+        <label for="periodo">Período</label>
+        <input id="periodo" type="text" list="periodos" inputmode="numeric" placeholder="AAAA-MM" autocomplete="off">
+        <datalist id="periodos"></datalist>
+        <span class="ayuda">Año y mes, por ejemplo 2026-06.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="campo">
+        <label for="archivo">Archivo REM</label>
+        <input id="archivo" type="file" accept=".xlsx,.xlsm">
+        <span class="ayuda">Solo .xlsx o .xlsm, de hasta 10 MB. El prototipo no lee el contenido del archivo.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <button type="submit" class="btn btn-primario">Cargar y validar</button>
+    </form>
+
+    <h2>Cargas anteriores</h2>
+    <div class="tabla-contenedor">
+      <table>
+        <thead><tr><th>N.º</th><th>Período</th><th>Archivo</th><th>Cargado por</th><th>Fecha</th><th>Estado</th><th>Resultado</th></tr></thead>
+        <tbody id="cargas"></tbody>
+      </table>
+    </div>
+
+    <details class="demo">
+      <summary>Para la demostración</summary>
+      <ul>
+        <li>Cualquier archivo con extensión .xlsx o .xlsm termina en la pantalla de resultado correcto.</li>
+        <li>Si el nombre del archivo contiene la palabra <code>error</code>, el resultado muestra una planilla con errores.</li>
+      </ul>
+    </details>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var periodo = document.getElementById('periodo'), archivo = document.getElementById('archivo');
+    var MAXIMO = 10 * 1024 * 1024;   // 10 MB
+
+    D.PERIODOS.forEach(function (p) { document.getElementById('periodos').appendChild(h('option', { value: p })); });
+
+    var cuerpo = document.getElementById('cargas');
+    D.CARGAS.forEach(function (c) {
+      var ok = c.estado === 'Validada';
+      cuerpo.appendChild(h('tr', null,
+        h('td', { texto: c.id }), h('td', { class: 'nw', texto: c.periodo }), h('td', { texto: c.archivo }), h('td', { class: 'nw', texto: c.usuario }), h('td', { class: 'nw', texto: c.fecha }),
+        h('td', null, h('span', { class: 'chip ' + (ok ? 'cumple' : 'nocumple') }, h('span', { 'aria-hidden': 'true', texto: ok ? '✔' : '✖' }), c.estado)),
+        h('td', { class: 'nw' }, h('a', { href: '10_resultado_validacion.html?carga=' + c.id, texto: 'Ver resultado' }))));
+    });
+    MS.reescribirEnlaces(cuerpo);
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Validando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true;
+        if (!MS.V.periodo(periodo.value)) { MS.error(periodo, 'Ingrese el período como AAAA-MM, con mes de 01 a 12 (por ejemplo 2026-06)'); ok = false; }
+        var f = archivo.files && archivo.files[0];
+        if (!f) { MS.error(archivo, 'Seleccione un archivo .xlsx o .xlsm'); ok = false; }
+        else if (!/\.(xlsx|xlsm)$/i.test(f.name)) { MS.error(archivo, 'El archivo debe ser .xlsx o .xlsm'); ok = false; }
+        else if (f.size === 0) { MS.error(archivo, 'El archivo está vacío'); ok = false; }
+        else if (f.size > MAXIMO) { MS.error(archivo, 'El archivo pesa más de 10 MB'); ok = false; }
+        return ok;
+      },
+      procesar: function () {
+        var f = archivo.files[0];
+        var conErrores = /error/i.test(f.name);
+        MS.ir('10_resultado_validacion.html', { carga: conErrores ? 2 : 5, p: periodo.value, a: f.name });
+      },
+      mantenerDeshabilitado: true      // la pantalla cambia, así que el botón no se vuelve a habilitar
+    });
+  </script>
+</body>
+</html>

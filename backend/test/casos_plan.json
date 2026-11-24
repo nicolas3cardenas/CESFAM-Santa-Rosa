@@ -1,0 +1,618 @@
+[
+ {
+  "codigo": "P1-1",
+  "control": "Correo",
+  "esperado": "Correo válido de hasta 100 caracteres",
+  "siInvalido": "Vacío, sin @, con espacios o de más de 100 caracteres: mensaje \"Ingrese un correo válido\" y no se envía",
+  "tipo": "Unitaria (Jest) y manual"
+ },
+ {
+  "codigo": "P1-2",
+  "control": "Contraseña",
+  "esperado": "De 8 a 64 caracteres",
+  "siInvalido": "Vacía, de menos de 8 o de más de 64: mensaje de error y no se envía",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P1-3",
+  "control": "Credenciales",
+  "esperado": "Correo y contraseña de una cuenta activa",
+  "siInvalido": "Mensaje \"Correo o contraseña incorrectos\", igual si el correo no existe; tras 5 intentos seguidos la cuenta se bloquea 15 minutos",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P1-4",
+  "control": "Botón Ingresar",
+  "esperado": "Un clic",
+  "siInvalido": "Con doble clic se envía una sola solicitud: queda deshabilitado mientras procesa",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P1-5",
+  "control": "Enlace \"Olvidé mi contraseña\"",
+  "esperado": "Un clic",
+  "siInvalido": "Abre la pantalla 2",
+  "tipo": "Manual"
+ },
+ {
+  "codigo": "P2-1",
+  "control": "Correo",
+  "esperado": "Correo válido de hasta 100 caracteres",
+  "siInvalido": "Vacío, sin @ o de más de 100 caracteres: mensaje y no se envía",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P2-2",
+  "control": "Respuesta al enviar",
+  "esperado": "Correo registrado o no",
+  "siInvalido": "El mensaje es el mismo en ambos casos (\"Si el correo está registrado, recibirá un enlace\")",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P2-3",
+  "control": "Botón Enviar enlace",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic no genera dos enlaces",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P3-1",
+  "control": "Contraseña actual",
+  "esperado": "La contraseña vigente de la cuenta",
+  "siInvalido": "Incorrecta o vacía: mensaje de error y no cambia",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P3-2",
+  "control": "Contraseña nueva",
+  "esperado": "De 8 a 64 caracteres y distinta de la actual",
+  "siInvalido": "Menos de 8, más de 64 o igual a la actual: mensaje de error",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P3-3",
+  "control": "Confirmar contraseña",
+  "esperado": "Igual a la nueva",
+  "siInvalido": "Distinta: mensaje \"Las contraseñas no coinciden\"",
+  "tipo": "Unitaria (Jest) y manual"
+ },
+ {
+  "codigo": "P3-4",
+  "control": "Enlace de recuperación",
+  "esperado": "Enlace vigente y no usado",
+  "siInvalido": "Vencido (más de 30 minutos), ya usado o alterado: mensaje \"Enlace no válido\" y no permite cambiar",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P3-5",
+  "control": "Botón Guardar",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic guarda una sola vez",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P4-1",
+  "control": "Lista Período",
+  "esperado": "Solo períodos con datos, en formato AAAA-MM; no se puede escribir",
+  "siInvalido": "Período sin datos: mensaje \"Sin datos para el período\"",
+  "tipo": "Manual"
+ },
+ {
+  "codigo": "P4-2",
+  "control": "Lista Programa",
+  "esperado": "Solo los programas que el rol puede ver; el Jefe de Programa ve únicamente el suyo",
+  "siInvalido": "Pedir otro programa modificando la solicitud: error 403",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P4-3",
+  "control": "Gráficos y metas",
+  "esperado": "Valores del período elegido",
+  "siInvalido": "Si falta la población de un indicador: aviso \"Falta ingresar la población\" en lugar del resultado",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P4-4",
+  "control": "Carga de la pantalla",
+  "esperado": "Uso normal",
+  "siInvalido": "Responde en menos de 3 segundos (RNF-03)",
+  "tipo": "Rendimiento (k6)"
+ },
+ {
+  "codigo": "P5-1",
+  "control": "Lista Mes",
+  "esperado": "Meses con datos",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P5-2",
+  "control": "Fechas Desde y Hasta",
+  "esperado": "Fechas existentes; Hasta no anterior a Desde",
+  "siInvalido": "Fecha inexistente (por ejemplo, 31-02) o Hasta anterior a Desde: mensaje y no consulta",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P5-3",
+  "control": "Lista Corte IAAPS",
+  "esperado": "Cortes definidos en el sistema",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P5-4",
+  "control": "Lista Programa",
+  "esperado": "Igual que P4-2",
+  "siInvalido": "Igual que P4-2",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P5-5",
+  "control": "Botón Consultar",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic ejecuta una sola consulta",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P5-6",
+  "control": "Tiempo de respuesta",
+  "esperado": "Consulta estándar",
+  "siInvalido": "Menos de 3 segundos (RNF-03)",
+  "tipo": "Rendimiento (k6)"
+ },
+ {
+  "codigo": "P6-1",
+  "control": "Lista Año actual",
+  "esperado": "Años con datos",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P6-2",
+  "control": "Lista Año a comparar",
+  "esperado": "Años con datos y distinto del año actual",
+  "siInvalido": "Mismo año o año sin datos: mensaje y no genera la comparación",
+  "tipo": "Unitaria (Jest) y manual"
+ },
+ {
+  "codigo": "P6-3",
+  "control": "Botón Comparar",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic genera una sola comparación",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P7-1",
+  "control": "Cuadro de comentario (solo Jefe de Programa)",
+  "esperado": "Texto de 1 a 500 caracteres sobre un indicador de su programa",
+  "siInvalido": "Vacío, solo espacios o de más de 500 caracteres: mensaje y no se guarda",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P7-2",
+  "control": "Texto con HTML o código",
+  "esperado": "Cualquier carácter dentro del largo permitido",
+  "siInvalido": "<script> se guarda y se muestra como texto; no se ejecuta",
+  "tipo": "Integral (Supertest) y manual"
+ },
+ {
+  "codigo": "P7-3",
+  "control": "Botón Publicar comentario",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic publica un solo comentario",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P7-4",
+  "control": "Cuadro de comentario en otros roles",
+  "esperado": "No se muestra a la Directora ni a la Subdirección",
+  "siInvalido": "Si envían un comentario directo a la API: error 403",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P7-5",
+  "control": "Lista de comentarios",
+  "esperado": "Comentarios del indicador",
+  "siInvalido": "El Jefe de Programa no ve comentarios de otro programa",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P8-1",
+  "control": "Lista Formato",
+  "esperado": "CSV o XLSX",
+  "siInvalido": "Otro formato, modificando la solicitud: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P8-2",
+  "control": "Lista Período",
+  "esperado": "Períodos con datos",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P8-3",
+  "control": "Botón Exportar",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic descarga un solo archivo; el archivo del Jefe de Programa solo tiene datos de su programa",
+  "tipo": "Recorrido completo (Playwright) e integral (Supertest)"
+ },
+ {
+  "codigo": "P9-1",
+  "control": "Lista Período",
+  "esperado": "Período en formato AAAA-MM, con mes de 01 a 12",
+  "siInvalido": "Otro formato (por ejemplo 2026-13): mensaje de error y no se envía; si llegara al servidor, la base lo rechaza por la restricción de formato",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P9-2",
+  "control": "Selector de archivo",
+  "esperado": "Un archivo .xlsx o .xlsm de hasta 10 MB",
+  "siInvalido": "Otra extensión (.pdf, .exe), archivo vacío o de más de 10 MB: mensaje de rechazo y no se sube (NS-06)",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P9-3",
+  "control": "Contenido del archivo",
+  "esperado": "Una planilla REM real, con las hojas y celdas que usan los indicadores",
+  "siInvalido": "Archivo con extensión válida pero que no es Excel, o .xlsm con macros: se rechaza o se lee sin ejecutar las macros",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P9-4",
+  "control": "Botón Cargar y validar",
+  "esperado": "Un clic",
+  "siInvalido": "Con doble clic se crea una sola carga: el botón queda deshabilitado mientras procesa",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P9-5",
+  "control": "Acceso a la pantalla",
+  "esperado": "Solo Subdirección y Gestor de Información",
+  "siInvalido": "Directora o Jefe de Programa: error 403 y pantalla 17",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P10-1",
+  "control": "Resumen de validación",
+  "esperado": "Hojas leídas, celdas vacías y errores, tomados del campo resumen_validacion (JSONB)",
+  "siInvalido": "Planilla con celdas no numéricas u hojas obligatorias faltantes: muestra el detalle y no crea resultados",
+  "tipo": "Integral (Supertest) y manual"
+ },
+ {
+  "codigo": "P10-2",
+  "control": "Dirección de la pantalla",
+  "esperado": "Solo lectura; se llega desde la pantalla 9",
+  "siInvalido": "Abrir una carga que no existe cambiando la dirección: mensaje \"Carga no encontrada\"",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P10-3",
+  "control": "Botón Cargar otro archivo",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic vuelve una sola vez a la pantalla 9",
+  "tipo": "Manual"
+ },
+ {
+  "codigo": "P11-1",
+  "control": "Lista Indicador",
+  "esperado": "Solo indicadores activos con origen de denominador \"Población\"",
+  "siInvalido": "Indicador inexistente, inactivo o con origen REM, modificando la solicitud: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P11-2",
+  "control": "Lista Período",
+  "esperado": "Período AAAA-MM válido",
+  "siInvalido": "Formato inválido: error 400. Si ya hay población para ese indicador y período: mensaje \"Ya existe población para ese período\" y no se sobrescribe (restricción única de la base)",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P11-3",
+  "control": "Campo Población",
+  "esperado": "Solo números enteros de 1 a 1.000.000",
+  "siInvalido": "Letras, punto o coma decimal, negativos, cero, vacío, notación científica (1e3) o más de 1.000.000: mensaje \"Ingrese un entero entre 1 y 1.000.000\" y no guarda; la base también lo rechaza",
+  "tipo": "Unitaria (Jest), integral (Supertest) y manual"
+ },
+ {
+  "codigo": "P11-4",
+  "control": "Botón Guardar",
+  "esperado": "Un clic",
+  "siInvalido": "Queda deshabilitado tras el primer clic; el doble clic guarda un solo registro y una sola entrada de auditoría",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P11-5",
+  "control": "Registro de auditoría",
+  "esperado": "Cada guardado deja usuario, fecha y valor ingresado",
+  "siInvalido": "Si el guardado es rechazado, no se escribe auditoría",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P11-6",
+  "control": "Acceso a la pantalla",
+  "esperado": "Solo Subdirección y Gestor de Información",
+  "siInvalido": "Directora o Jefe de Programa: error 403 y pantalla 17",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P12-1",
+  "control": "Cuadro Buscar",
+  "esperado": "Texto de hasta 100 caracteres",
+  "siInvalido": "Más de 100 caracteres: mensaje y no consulta. Comillas, apóstrofes y signos como ' \" < > se tratan como texto, sin error ni inyección",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P12-2",
+  "control": "Lista Programa",
+  "esperado": "Programas existentes o \"Todos\"",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P12-3",
+  "control": "Botones Nuevo y Editar",
+  "esperado": "Un clic; solo Subdirección y Gestor de Información",
+  "siInvalido": "El doble clic abre un solo formulario (pantalla 13); Directora o Jefe de Programa: error 403",
+  "tipo": "Manual e integral (Supertest)"
+ },
+ {
+  "codigo": "P13-1",
+  "control": "Nombre",
+  "esperado": "Texto de 1 a 200 caracteres",
+  "siInvalido": "Vacío, solo espacios o de más de 200 caracteres: marca el campo y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P13-2",
+  "control": "Lista Programa",
+  "esperado": "Programas existentes",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P13-3",
+  "control": "Código REM",
+  "esperado": "Texto de 1 a 20 caracteres",
+  "siInvalido": "Vacío o de más de 20 caracteres: mensaje y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P13-4",
+  "control": "Celda del numerador",
+  "esperado": "Referencia de celda en formato Excel (por ejemplo B12), hasta 50 caracteres",
+  "siInvalido": "Vacía o con otro formato (12B, B-12): mensaje y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P13-5",
+  "control": "Lista Origen del denominador y Celda del denominador",
+  "esperado": "REM o Población. Con REM la celda del denominador es obligatoria; con Población queda vacía y deshabilitada",
+  "siInvalido": "Combinación inconsistente enviada directamente a la API: error 400, y la base la rechaza por la restricción del indicador",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P13-6",
+  "control": "Meta nacional",
+  "esperado": "Número mayor o igual a 0, con hasta 2 decimales",
+  "siInvalido": "Letras, negativos o más de 2 decimales: mensaje y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P13-7",
+  "control": "Peso relativo",
+  "esperado": "Número de 0 a 100, con hasta 2 decimales",
+  "siInvalido": "Letras, negativos o mayor a 100: mensaje y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P13-8",
+  "control": "Sección, Código de prestación y Referente responsable (opcionales)",
+  "esperado": "Hasta 50, 50 y 100 caracteres; pueden quedar vacíos",
+  "siInvalido": "Más largos que el máximo: mensaje y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P13-9",
+  "control": "Botón Guardar",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic guarda una sola vez y deja en auditoría el valor anterior y el nuevo",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P14-1",
+  "control": "Acceso a la pantalla",
+  "esperado": "Solo Gestor de Información",
+  "siInvalido": "Directora, Subdirección o Jefe de Programa: error 403 y pantalla 17",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P14-2",
+  "control": "Cuadro Buscar",
+  "esperado": "Texto de hasta 100 caracteres",
+  "siInvalido": "Más de 100 caracteres: mensaje; los caracteres especiales se tratan como texto",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P14-3",
+  "control": "Lista Rol",
+  "esperado": "Los 4 roles o \"Todos\"",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P14-4",
+  "control": "Botón Activar / Desactivar",
+  "esperado": "Un clic, con confirmación",
+  "siInvalido": "Si cancela, no cambia nada; el doble clic procesa una sola vez; un usuario desactivado no puede iniciar sesión",
+  "tipo": "Integral (Supertest) y recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P15-1",
+  "control": "Nombre",
+  "esperado": "Texto de 1 a 100 caracteres",
+  "siInvalido": "Vacío, solo espacios o de más de 100 caracteres: mensaje y no guarda",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P15-2",
+  "control": "Correo",
+  "esperado": "Correo válido, de hasta 100 caracteres y no repetido",
+  "siInvalido": "Sin @, con espacios, de más de 100 caracteres o ya registrado: mensaje y no guarda; la base también rechaza el correo repetido",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P15-3",
+  "control": "Lista Rol",
+  "esperado": "Los 4 roles",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P15-4",
+  "control": "Lista Programa",
+  "esperado": "Obligatoria solo para el rol Jefe de Programa",
+  "siInvalido": "Jefe de Programa sin programa, u otro rol con programa: mensaje y no guarda; el trigger de la base también lo rechaza",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P15-5",
+  "control": "Contraseña inicial",
+  "esperado": "De 8 a 64 caracteres",
+  "siInvalido": "Menos de 8 o más de 64: mensaje y no guarda; en la base solo se almacena el hash",
+  "tipo": "Unitaria (Jest) e integral (Supertest)"
+ },
+ {
+  "codigo": "P15-6",
+  "control": "Botón Guardar",
+  "esperado": "Un clic",
+  "siInvalido": "El doble clic crea o actualiza una sola vez y queda en auditoría",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P16-1",
+  "control": "Fechas Desde y Hasta",
+  "esperado": "Fechas existentes; Hasta no anterior a Desde",
+  "siInvalido": "Fecha inexistente o Hasta anterior a Desde: mensaje y no consulta",
+  "tipo": "Unitaria (Jest)"
+ },
+ {
+  "codigo": "P16-2",
+  "control": "Listas Usuario y Entidad",
+  "esperado": "Usuarios y entidades existentes",
+  "siInvalido": "Valor fuera de la lista: error 400",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P16-3",
+  "control": "Detalle del cambio",
+  "esperado": "Solo lectura: muestra el valor anterior y el nuevo (JSONB)",
+  "siInvalido": "No hay botones para editar ni borrar; intentar modificar o borrar un registro desde la API se rechaza y el registro no cambia",
+  "tipo": "Manual e integral (Supertest)"
+ },
+ {
+  "codigo": "P16-4",
+  "control": "Acceso a la pantalla",
+  "esperado": "Solo Gestor de Información",
+  "siInvalido": "Otros roles: error 403 y pantalla 17",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "P17-1",
+  "control": "Mensaje de acceso denegado",
+  "esperado": "Aparece cuando el servidor responde 403 por una ruta sin permiso",
+  "siInvalido": "Se prueba con cada rol en rutas ajenas (por ejemplo, un Jefe de Programa en la pantalla 14); no se muestra ningún dato de la pantalla bloqueada",
+  "tipo": "Integral (Supertest) y recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "P17-2",
+  "control": "Botón Volver al inicio",
+  "esperado": "Un clic",
+  "siInvalido": "Lleva a la pantalla de inicio del rol; el doble clic navega una sola vez",
+  "tipo": "Manual y recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "T-1",
+  "control": "Inyección SQL",
+  "esperado": "Escribir ' OR 1=1 -- y '; DROP TABLE usuario; -- en cada cuadro de texto y en el correo del inicio de sesión",
+  "siInvalido": "Se trata como texto: no se inicia sesión, no se devuelven filas de más y no se altera ninguna tabla, porque las consultas son parametrizadas (sección 6.4)",
+  "tipo": "Integral (Supertest) y manual"
+ },
+ {
+  "codigo": "T-2",
+  "control": "Script en un campo (XSS)",
+  "esperado": "Escribir <script>alert(1)</script> en comentarios, búsquedas y nombres",
+  "siInvalido": "Se guarda y se muestra como texto; no se ejecuta",
+  "tipo": "Integral (Supertest) y recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "T-3",
+  "control": "Solicitud sin sesión",
+  "esperado": "Pedir una ruta protegida sin enviar el token",
+  "siInvalido": "Error 401 y la pantalla lleva al inicio de sesión",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "T-4",
+  "control": "Token vencido o alterado",
+  "esperado": "Usar un token de más de 30 minutos o con un carácter cambiado",
+  "siInvalido": "Error 401 y se pide iniciar sesión de nuevo",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "T-5",
+  "control": "Rol sin permiso",
+  "esperado": "Con cada rol, pedir rutas de otro rol modificando la solicitud (por ejemplo, la Directora intentando cargar un REM)",
+  "siInvalido": "Error 403, pantalla 17 y ningún dato de la ruta bloqueada",
+  "tipo": "Integral (Supertest) y recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "T-6",
+  "control": "Alcance por programa",
+  "esperado": "Un Jefe de Programa pide indicadores, comentarios o exportación de otro programa",
+  "siInvalido": "Solo recibe datos de su programa; lo ajeno se rechaza",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "T-7",
+  "control": "Doble clic en botones que guardan",
+  "esperado": "Hacer doble clic en cada botón Guardar, Cargar, Publicar y Exportar",
+  "siInvalido": "Una sola operación y un solo registro",
+  "tipo": "Recorrido completo (Playwright)"
+ },
+ {
+  "codigo": "T-8",
+  "control": "Bloqueo de cuenta",
+  "esperado": "Cinco contraseñas incorrectas seguidas",
+  "siInvalido": "Cuenta bloqueada 15 minutos y mensaje igual al de un error normal",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "T-9",
+  "control": "Archivo no válido o con macros",
+  "esperado": "Subir un .exe renombrado como .xlsx y un .xlsm con macro",
+  "siInvalido": "Se rechaza el primero; las macros del segundo no se ejecutan (NS-06)",
+  "tipo": "Integral (Supertest)"
+ },
+ {
+  "codigo": "T-10",
+  "control": "Integridad de la base de datos",
+  "esperado": "Ejecutar el bloque E de 03_verificar_tablas.sql en pgAdmin",
+  "siInvalido": "La base rechaza los 8 casos inválidos, cada uno con su mensaje",
+  "tipo": "pgAdmin (manual)"
+ },
+ {
+  "codigo": "T-11",
+  "control": "Rendimiento",
+  "esperado": "10 usuarios simultáneos consultando dashboard, reportes, comparativo y exportación",
+  "siInvalido": "Cada respuesta en menos de 3 segundos (RNF-03)",
+  "tipo": "k6"
+ },
+ {
+  "codigo": "T-12",
+  "control": "Navegadores y tamaños de pantalla",
+  "esperado": "Recorrer el sistema en Chrome, Edge y Firefox, y en ancho de computador, tableta y teléfono",
+  "siInvalido": "Menús y botones usables, sin desplazamiento horizontal (RNF-07)",
+  "tipo": "Recorrido completo (Playwright) y manual"
+ }
+]

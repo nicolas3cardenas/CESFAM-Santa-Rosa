@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inicio de sesión · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body class="acceso" data-pagina="01">
+  <main id="contenido">
+    <div class="centrado"><div data-logo class="logo-grande"></div></div>
+    <h1>Ingreso al sistema</h1>
+    <p class="texto-2">Sistema de gestión de indicadores y metas sanitarias</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" novalidate>
+      <div class="campo">
+        <label for="correo">Correo</label>
+        <input id="correo" type="text" inputmode="email" autocomplete="username" placeholder="nombre@institucion.cl">
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="campo">
+        <label for="clave">Contraseña</label>
+        <div class="con-ojo">
+          <input id="clave" type="password" autocomplete="current-password">
+          <button type="button" id="ojo" class="btn-ojo" aria-pressed="false">Mostrar</button>
+        </div>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <button type="submit" class="btn btn-primario btn-ancho">Ingresar</button>
+    </form>
+
+    <div class="enlaces">
+      <a href="02_olvide_contrasena.html">Olvidé mi contraseña</a>
+    </div>
+
+    <details class="demo">
+      <summary>Cuentas de demostración</summary>
+      <p>El prototipo no valida contra una base de datos: el rol se deduce del correo y sirve cualquier contraseña de 8 a 64 caracteres.</p>
+      <ul>
+        <li><code>directora@demo.cl</code> · Directora</li>
+        <li><code>subdireccion@demo.cl</code> · Subdirección</li>
+        <li><code>gestor@demo.cl</code> · Gestor de Información</li>
+        <li><code>jefe.matronas@demo.cl</code> · Jefe de Programa (Matronas)</li>
+      </ul>
+      <button type="button" id="reiniciar" class="btn btn-secundario btn-pequeno">Reiniciar intentos fallidos</button>
+    </details>
+  </main>
+
+  <script>
+    var correo = document.getElementById('correo');
+    var clave = document.getElementById('clave');
+    var CORREOS = {};
+    Object.keys(MS.ROLES).forEach(function (r) { CORREOS[MS.ROLES[r].correo] = r; });
+    var fallos = 0, bloqueadoHasta = 0;      // intentos seguidos y hora de fin del bloqueo (solo en memoria y en esta pestaña)
+    try { fallos = Number(sessionStorage.getItem('ms_fallos') || 0); bloqueadoHasta = Number(sessionStorage.getItem('ms_bloqueo') || 0); } catch (e) {}
+    function recordar() { try { sessionStorage.setItem('ms_fallos', fallos); sessionStorage.setItem('ms_bloqueo', bloqueadoHasta); } catch (e) {} }
+
+    MS.verClave(clave, document.getElementById('ojo'));
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Ingresando…',
+      mantenerDeshabilitado: true,                     // al entrar se pasa a otra pantalla; si falla, se rehabilita abajo
+      validar: function () {
+        MS.aviso(null);
+        var ok = true;
+        if (!MS.V.correo(correo.value)) { MS.error(correo, 'Ingrese un correo válido'); ok = false; }
+        if (!MS.V.clave(clave.value)) { MS.error(clave, 'La contraseña debe tener entre 8 y 64 caracteres'); ok = false; }
+        return ok;
+      },
+      procesar: function () {
+        var boton = document.querySelector('button[type="submit"]');
+        function liberar() { boton.disabled = false; boton.removeAttribute('data-ocupado'); boton.textContent = 'Ingresar'; }
+        if (Date.now() < bloqueadoHasta) {
+          MS.aviso('error', 'Correo o contraseña incorrectos');   // con la cuenta bloqueada se responde lo mismo (plan T-8): no se revela si el correo existe
+          liberar(); return;
+        }
+        var r = CORREOS[correo.value.toLowerCase()];
+        if (!r) {                                       // siempre el mismo mensaje, exista o no el correo
+          fallos++;
+          if (fallos >= 5) { bloqueadoHasta = Date.now() + 15 * 60 * 1000; fallos = 0; }
+          recordar();
+          MS.aviso('error', 'Correo o contraseña incorrectos');
+          liberar(); return;
+        }
+        fallos = 0; recordar();
+        MS.guardarSesion(r, clave.value);
+        MS.rol = r;
+        location.href = MS.ROLES[r].inicio + '?u=' + r;
+      }
+    });
+
+    document.getElementById('reiniciar').addEventListener('click', function () {
+      fallos = 0; bloqueadoHasta = 0; recordar();
+      MS.aviso('info', 'Intentos reiniciados.');
+    });
+  </script>
+</body>
+</html>

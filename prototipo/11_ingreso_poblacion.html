@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingreso de población · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="11">
+  <main id="contenido">
+    <h1>Ingreso de población</h1>
+    <p class="texto-2">Registre el denominador de los indicadores cuya población no viene en el REM. Cada indicador y mes se ingresa una sola vez.</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" class="tarjeta formulario" novalidate>
+      <div class="fila">
+        <div class="campo">
+          <label for="indicador">Indicador</label>
+          <select id="indicador"></select>
+          <span class="ayuda">Solo aparecen los indicadores activos cuyo denominador se ingresa a mano.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="periodo">Período</label>
+          <select id="periodo"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+      <div class="campo" style="max-width:320px">
+        <label for="poblacion">Población</label>
+        <input id="poblacion" type="text" inputmode="numeric" autocomplete="off" placeholder="Por ejemplo: 900">
+        <span class="ayuda">Número entero de 1 a 1.000.000, escrito sin puntos ni comas.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <button type="submit" class="btn btn-primario">Guardar</button>
+    </form>
+
+    <h2>Población ya ingresada</h2>
+    <div class="tabla-contenedor">
+      <table>
+        <thead><tr><th>Indicador</th><th>Período</th><th class="num">Población</th><th>Ingresó</th></tr></thead>
+        <tbody id="ingresada"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var selInd = document.getElementById('indicador'), selPer = document.getElementById('periodo'), caja = document.getElementById('poblacion');
+
+    // Solo indicadores activos con denominador "Población"
+    var elegibles = D.INDICADORES.filter(function (i) { return i.activo && i.origen === 'POBLACION'; });
+    MS.opciones(selInd, elegibles.map(function (i) { return { valor: String(i.id), texto: i.codigo + ' · ' + i.nombre }; }), '5', 'Seleccione un indicador');
+    MS.opciones(selPer, D.PERIODOS, '2026-06');
+
+    var cuerpo = document.getElementById('ingresada');
+    function pintarTabla() {
+      MS.vaciar(cuerpo);
+      D.POBLACION.slice().sort(function (a, b) { return a.periodo < b.periodo ? 1 : a.periodo > b.periodo ? -1 : a.ind - b.ind; }).forEach(function (p) {
+        var ind = MS.indicadorPorId(p.ind);
+        cuerpo.appendChild(h('tr', null, h('td', { texto: ind.codigo + ' · ' + ind.nombre }), h('td', { texto: p.periodo }),
+          h('td', { class: 'num', texto: MS.fmt(p.valor) }), h('td', { texto: p.usuario })));
+      });
+    }
+    pintarTabla();
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Guardando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true;
+        if (selInd.value === '') { MS.error(selInd, 'Seleccione un indicador'); ok = false; }
+        if (!MS.V.entero(caja.value, 1, 1000000)) { MS.error(caja, 'Ingrese un entero entre 1 y 1.000.000'); ok = false; }
+        if (selInd.value !== '' && MS.valorPoblacion(selInd.value, selPer.value) !== null) { MS.error(selPer, 'Ya existe población para ese período'); ok = false; }
+        return ok;
+      },
+      procesar: function () {
+        var ind = MS.indicadorPorId(selInd.value), valor = Number(caja.value);
+        // El prototipo no guarda: solo agrega la fila a la tabla de esta pantalla para mostrar el efecto
+        D.POBLACION.push({ ind: ind.id, periodo: selPer.value, valor: valor, usuario: MS.ROLES[MS.rol].usuario });
+        pintarTabla();
+        MS.aviso('exito', 'Población guardada: ' + ind.codigo + ', ' + selPer.value + ', ' + MS.fmt(valor) + '. Queda registrada en la auditoría (demostración: el prototipo no conserva el dato al recargar).');
+        caja.value = '';
+      }
+    });
+  </script>
+</body>
+</html>

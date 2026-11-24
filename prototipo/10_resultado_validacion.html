@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resultado de la validación · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="10">
+  <main id="contenido">
+    <p class="migas"><a href="09_carga_rem.html">Carga de REM</a> › Resultado de la validación</p>
+    <h1>Resultado de la validación</h1>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <div id="detalle"></div>
+  </main>
+
+  <script>
+    var h = MS.h;
+    var det = document.getElementById('detalle');
+    var c = MS.cargaPorId(MS.param('carga'));
+
+    function dosDigitos(n) { return ('0' + n).slice(-2); }
+
+    if (!c) {
+      // Se abrió una carga que no existe (por ejemplo, cambiando el número en la dirección)
+      MS.aviso('error', 'Carga no encontrada');
+      det.appendChild(h('p', { class: 'texto-2', texto: 'No existe una carga con ese número. Vuelva a la carga de REM para subir un archivo.' }));
+      var volver = h('a', { class: 'btn btn-secundario', href: '09_carga_rem.html', texto: 'Volver a la carga de REM' });
+      det.appendChild(volver);
+      MS.reescribirEnlaces(det);
+    } else {
+      // Si se llega desde la pantalla 9 con un archivo recién subido, se muestran su período y su nombre
+      var recien = MS.param('a') !== null;
+      var periodo = recien && MS.V.periodo(MS.param('p') || '') ? MS.param('p') : c.periodo;
+      var nombreArchivo = recien ? MS.param('a') : c.archivo;
+      var ahora = new Date();
+      var fecha = recien ? dosDigitos(ahora.getDate()) + '-' + dosDigitos(ahora.getMonth() + 1) + '-' + ahora.getFullYear() + ' ' + dosDigitos(ahora.getHours()) + ':' + dosDigitos(ahora.getMinutes()) : c.fecha;
+      var usuario = recien ? MS.ROLES[MS.rol].usuario : c.usuario;
+      var r = c.resumen, ok = c.estado === 'Validada';
+
+      if (ok) { MS.aviso('exito', 'La planilla es válida: se leyeron todas las hojas y se crearon los resultados del período ' + periodo + '.'); }
+      else { MS.aviso('error', 'La planilla tiene errores: no se crearon resultados. Corrija el archivo y cárguelo de nuevo.'); }
+
+      det.appendChild(h('div', { class: 'tarjetas' },
+        h('div', { class: 'tarjeta-dato' }, h('div', { class: 'cifra', texto: r.hojas_leidas + ' de ' + r.hojas_esperadas }), 'Hojas leídas'),
+        h('div', { class: 'tarjeta-dato' }, h('div', { class: 'cifra', texto: r.celdas_leidas }), 'Celdas leídas'),
+        h('div', { class: 'tarjeta-dato riesgo' }, h('div', { class: 'cifra', texto: r.celdas_vacias }), 'Celdas vacías'),
+        h('div', { class: 'tarjeta-dato ' + (r.errores.length ? 'nocumple' : 'cumple') }, h('div', { class: 'cifra', texto: r.errores.length }), 'Errores')));
+
+      var datos = h('dl', { class: 'datos' },
+        h('dt', { texto: 'Carga n.º' }), h('dd', { texto: c.id }),
+        h('dt', { texto: 'Período' }), h('dd', { texto: periodo }),
+        h('dt', { texto: 'Archivo' }), h('dd', { texto: nombreArchivo }),
+        h('dt', { texto: 'Cargado por' }), h('dd', { texto: usuario }),
+        h('dt', { texto: 'Fecha' }), h('dd', { texto: fecha }),
+        h('dt', { texto: 'Estado' }), h('dd', null, h('span', { class: 'chip ' + (ok ? 'cumple' : 'nocumple') }, h('span', { 'aria-hidden': 'true', texto: ok ? '✔' : '✖' }), c.estado)));
+      det.appendChild(h('section', { class: 'tarjeta', 'aria-label': 'Datos de la carga' }, datos));
+
+      if (r.errores.length) {
+        var cuerpo = h('tbody');
+        r.errores.forEach(function (e) {
+          cuerpo.appendChild(h('tr', null, h('td', { texto: e.hoja }), h('td', { texto: e.celda || '—' }), h('td', { texto: e.problema })));
+        });
+        det.appendChild(h('h2', { texto: 'Detalle de los errores' }));
+        det.appendChild(h('div', { class: 'tabla-contenedor', style: 'margin-bottom:20px' },
+          h('table', null, h('thead', null, h('tr', null, h('th', { texto: 'Hoja' }), h('th', { texto: 'Celda' }), h('th', { texto: 'Problema' }))), cuerpo)));
+      }
+
+      det.appendChild(h('section', { class: 'tarjeta', 'aria-label': 'Resumen guardado' },
+        h('h2', { texto: 'Resumen guardado de la validación' }),
+        h('p', { class: 'texto-2 pequeno', texto: 'Este resumen se guarda tal cual en el campo resumen_validacion (JSONB); su estructura cambia de una carga a otra.' }),
+        h('pre', { class: 'json', texto: JSON.stringify(r, null, 2) })));
+
+      var otro = h('button', { type: 'button', class: 'btn btn-primario', texto: 'Cargar otro archivo' });
+      MS.unClic(otro, function () { MS.ir('09_carga_rem.html'); }, 300);
+      det.appendChild(h('div', { class: 'acciones' }, otro));
+    }
+  </script>
+</body>
+</html>

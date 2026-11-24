@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Olvidé mi contraseña · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body class="acceso" data-pagina="02">
+  <main id="contenido">
+    <div class="centrado"><div data-logo class="logo-grande"></div></div>
+    <h1>Olvidé mi contraseña</h1>
+    <p class="texto-2">Escriba el correo de su cuenta y le enviaremos un enlace para crear una contraseña nueva. El enlace sirve una sola vez y vence en 30 minutos.</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" novalidate>
+      <div class="campo">
+        <label for="correo">Correo</label>
+        <input id="correo" type="text" inputmode="email" autocomplete="username" placeholder="nombre@institucion.cl">
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <button type="submit" class="btn btn-primario btn-ancho">Enviar enlace</button>
+    </form>
+
+    <div id="demo-enlace" class="aviso info" hidden>
+      <span>Demostración: <a href="03_cambiar_contrasena.html?via=enlace">abrir el enlace recibido</a> ·
+      <a href="03_cambiar_contrasena.html?via=vencido">abrir un enlace vencido</a></span>
+    </div>
+
+    <div class="enlaces">
+      <a href="01_inicio_sesion.html">Volver al inicio de sesión</a>
+    </div>
+  </main>
+
+  <script>
+    var correo = document.getElementById('correo');
+    MS.formulario(document.getElementById('form'), {
+      validar: function () {
+        MS.aviso(null);
+        if (!MS.V.correo(correo.value)) { MS.error(correo, 'Ingrese un correo válido'); return false; }
+        return true;
+      },
+      procesar: function () {
+        // El mensaje es el mismo si el correo está registrado o no: así no se revela qué correos existen.
+        MS.aviso('exito', 'Si el correo está registrado, recibirá un enlace');
+        document.getElementById('demo-enlace').hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>

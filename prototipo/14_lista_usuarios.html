@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Usuarios · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="14">
+  <main id="contenido">
+    <div class="encabezado">
+      <div>
+        <h1>Usuarios</h1>
+        <p class="texto-2" style="margin:0">Personas con acceso al sistema y su rol.</p>
+      </div>
+      <a class="btn btn-primario" href="15_formulario_usuario.html">Nuevo usuario</a>
+    </div>
+
+    <form id="form" class="tarjeta" novalidate>
+      <div class="filtros">
+        <div class="campo">
+          <label for="buscar">Buscar</label>
+          <input id="buscar" type="text" placeholder="Nombre o correo" autocomplete="off">
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="rol">Rol</label>
+          <select id="rol"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <button type="submit" class="btn btn-primario">Buscar</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <p id="cuenta" class="texto-2 pequeno" aria-live="polite"></p>
+    <div id="resultado"></div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var buscar = document.getElementById('buscar'), rol = document.getElementById('rol');
+    MS.opciones(rol, ['Todos'].concat(D.ROLES_LISTA), 'Todos');
+    var filtro = { texto: '', rol: 'Todos' };
+
+    function pintar() {
+      var cont = document.getElementById('resultado');
+      MS.vaciar(cont);
+      var q = filtro.texto.trim().toLowerCase();
+      var lista = D.USUARIOS.filter(function (u) {
+        return (filtro.rol === 'Todos' || u.rol === filtro.rol) && (q === '' || u.nombre.toLowerCase().indexOf(q) >= 0 || u.correo.toLowerCase().indexOf(q) >= 0);
+      });
+      document.getElementById('cuenta').textContent = lista.length + (lista.length === 1 ? ' usuario' : ' usuarios');
+      if (lista.length === 0) {
+        cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('p', { class: 'sin-resultados', texto: 'No hay usuarios que coincidan con la búsqueda.' })));
+        return;
+      }
+      var cuerpo = h('tbody');
+      lista.forEach(function (u) {
+        var boton = h('button', { type: 'button', class: 'btn btn-pequeno ' + (u.activo ? 'btn-secundario' : 'btn-primario'), texto: u.activo ? 'Desactivar' : 'Activar' });
+        boton.addEventListener('click', function () {
+          var nuevo = !u.activo;
+          MS.confirmar(
+            nuevo ? '¿Activar a ' + u.nombre + '?' : '¿Desactivar a ' + u.nombre + '?',
+            nuevo ? 'La persona podrá volver a iniciar sesión.' : 'La persona ya no podrá iniciar sesión. Sus datos y su historial se conservan.',
+            nuevo ? 'Activar' : 'Desactivar',
+            function () {
+              u.activo = nuevo;
+              pintar();
+              MS.aviso('exito', 'Usuario ' + (nuevo ? 'activado' : 'desactivado') + ': ' + u.nombre + '. Queda en la auditoría (demostración: el prototipo no conserva el cambio al recargar).');
+            });
+        });
+        cuerpo.appendChild(h('tr', null,
+          h('td', { texto: u.nombre }), h('td', { texto: u.correo }), h('td', { texto: u.rol }), h('td', { texto: u.programa || '—' }),
+          h('td', null, u.activo ? h('span', { class: 'chip cumple' }, h('span', { 'aria-hidden': 'true', texto: '✔' }), 'Activo') : h('span', { class: 'chip neutro' }, h('span', { 'aria-hidden': 'true', texto: '–' }), 'Inactivo')),
+          h('td', { class: 'nw' }, h('a', { class: 'btn btn-secundario btn-pequeno', href: '15_formulario_usuario.html?id=' + u.id, texto: 'Editar' }), boton)));
+      });
+      cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', { texto: 'Nombre' }), h('th', { texto: 'Correo' }), h('th', { texto: 'Rol' }), h('th', { texto: 'Programa' }), h('th', { texto: 'Estado' }), h('th', { texto: 'Acciones' }))), cuerpo)));
+      MS.reescribirEnlaces(cont);
+    }
+    pintar();
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Buscando…',
+      demora: 300,
+      validar: function () {
+        MS.aviso(null);
+        if (buscar.value.length > 100) { MS.error(buscar, 'Escriba como máximo 100 caracteres'); return false; }
+        return true;
+      },
+      procesar: function () { filtro = { texto: buscar.value, rol: rol.value }; pintar(); }
+    });
+  </script>
+</body>
+</html>

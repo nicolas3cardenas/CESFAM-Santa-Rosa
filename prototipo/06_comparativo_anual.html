@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comparativo anual · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="06">
+  <main id="contenido">
+    <h1>Comparativo anual</h1>
+    <p class="texto-2">Compara el resultado promedio de cada indicador entre dos años. Las cifras son inventadas.</p>
+
+    <form id="form" class="tarjeta" novalidate>
+      <div class="filtros">
+        <div class="campo">
+          <label for="actual">Año actual</label>
+          <select id="actual"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="comparar">Año a comparar</label>
+          <select id="comparar"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <button type="submit" class="btn btn-primario">Comparar</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <div id="resultado"></div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var actual = document.getElementById('actual'), comparar = document.getElementById('comparar');
+    MS.opciones(actual, ['2026', '2025'], '2026');
+    MS.opciones(comparar, D.ANIOS.slice(1), '2025');            // 2025, 2024 y 2023 (2023 no tiene datos)
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Comparando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true;
+        if (comparar.value === actual.value) { MS.error(comparar, 'Elija un año distinto del año actual'); ok = false; }
+        else if (D.ANIOS_CON_DATOS.indexOf(comparar.value) < 0) { MS.error(comparar, 'No hay datos para el año elegido'); ok = false; }
+        if (D.ANIOS_CON_DATOS.indexOf(actual.value) < 0) { MS.error(actual, 'No hay datos para el año elegido'); ok = false; }
+        return ok;
+      },
+      procesar: function () {
+        var cont = document.getElementById('resultado');
+        MS.vaciar(cont);
+        var a = D.ANUAL[actual.value], b = D.ANUAL[comparar.value];
+        var grafico = h('div', { class: 'grafico', role: 'img', 'aria-label': 'Gráfico de barras que compara cada indicador entre dos años' });
+        var cuerpo = h('tbody');
+        MS.datos.INDICADORES.forEach(function (ind) {
+          var pa = a[ind.id], pb = b[ind.id], est = MS.estado(pa, ind.meta), dif = pa - pb;
+          var pistas = h('div', { class: 'pistas' },
+            h('div', { class: 'barra-pista' }, h('div', { class: 'barra-relleno ' + est, style: 'width:' + pa + '%' }), h('div', { class: 'barra-meta', style: 'left:' + ind.meta + '%' })),
+            h('div', { class: 'barra-pista' }, h('div', { class: 'barra-relleno anterior', style: 'width:' + pb + '%' })));
+          grafico.appendChild(h('div', { class: 'barra-fila' }, h('span', { class: 'barra-nombre', texto: ind.nombre }), pistas,
+            h('span', { class: 'barra-valor', texto: pa + ' % / ' + pb + ' %' })));
+          cuerpo.appendChild(h('tr', null, h('td', { texto: ind.nombre }), h('td', { class: 'num', texto: ind.meta + ' %' }),
+            h('td', { class: 'num', texto: pa + ' %' }), h('td', { class: 'num', texto: pb + ' %' }),
+            h('td', { class: 'num', texto: (dif > 0 ? '▲ +' : dif < 0 ? '▼ ' : '= ') + dif + ' pp' }), h('td', null, MS.chip(est))));
+        });
+        cont.appendChild(h('section', { class: 'tarjeta' }, h('h2', { texto: actual.value + ' frente a ' + comparar.value }), grafico,
+          h('div', { class: 'leyenda' }, h('span', { class: 'l-cumple', texto: 'Año actual (color según la meta)' }), h('span', { class: 'l-ant', texto: 'Año a comparar' }), h('span', { class: 'l-meta', texto: 'Meta' }))));
+        cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('table', null,
+          h('thead', null, h('tr', null, h('th', { texto: 'Indicador' }), h('th', { class: 'num', texto: 'Meta' }), h('th', { class: 'num', texto: actual.value }),
+            h('th', { class: 'num', texto: comparar.value }), h('th', { class: 'num', texto: 'Variación' }), h('th', { texto: 'Estado ' + actual.value }))), cuerpo)));
+      }
+    });
+  </script>
+</body>
+</html>

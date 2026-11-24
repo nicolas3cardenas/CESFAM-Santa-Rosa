@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auditoría de cambios · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="16">
+  <main id="contenido">
+    <h1>Auditoría de cambios</h1>
+    <p class="texto-2">Registro de quién cambió qué y cuándo. Solo se puede leer: no se puede editar ni borrar.</p>
+
+    <form id="form" class="tarjeta" novalidate>
+      <div class="filtros">
+        <div class="campo">
+          <label for="desde">Desde</label>
+          <input id="desde" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" autocomplete="off">
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="hasta">Hasta</label>
+          <input id="hasta" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" autocomplete="off">
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="usuario">Usuario</label>
+          <select id="usuario"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="entidad">Entidad</label>
+          <select id="entidad"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <button type="submit" class="btn btn-primario">Consultar</button>
+        </div>
+      </div>
+      <p class="texto-2 pequeno" style="margin:0">Las fechas son opcionales. Sin filtros se muestran todos los registros.</p>
+    </form>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+    <p id="cuenta" class="texto-2 pequeno" aria-live="polite"></p>
+    <div id="resultado"></div>
+  </main>
+
+  <script>
+    var h = MS.h, D = MS.datos;
+    var desde = document.getElementById('desde'), hasta = document.getElementById('hasta');
+    var usuario = document.getElementById('usuario'), entidad = document.getElementById('entidad');
+
+    var ACCIONES = { INGRESO_POBLACION: 'Ingreso de población', CARGA_REM: 'Carga de REM', ACTUALIZAR_INDICADOR: 'Actualización de indicador',
+      CREAR_USUARIO: 'Creación de usuario', DESACTIVAR_USUARIO: 'Desactivación de usuario', LOGIN_FALLIDO: 'Inicio de sesión fallido' };
+    var ENTIDADES = { carga_rem: 'Carga de REM', indicador: 'Indicador', poblacion_denominador: 'Población (denominador)', usuario: 'Usuario' };
+
+    var nombres = [];
+    D.AUDITORIA.forEach(function (a) { if (a.usuario && nombres.indexOf(a.usuario) < 0) { nombres.push(a.usuario); } });
+    MS.opciones(usuario, [{ valor: 'Todos', texto: 'Todos' }].concat(nombres.map(function (n) { return { valor: n, texto: n }; })).concat([{ valor: '__sin', texto: '(sin usuario)' }]), 'Todos');
+    MS.opciones(entidad, [{ valor: 'Todas', texto: 'Todas' }].concat(Object.keys(ENTIDADES).map(function (k) { return { valor: k, texto: ENTIDADES[k] }; })), 'Todas');
+
+    function fechaDe(texto) { return MS.V.fecha(texto.slice(0, 10)); }      // 'DD-MM-AAAA HH:MM' -> Date
+
+    // Solo lectura: no hay botones para editar ni borrar. El detalle muestra el valor anterior y el nuevo (JSONB).
+    function detalle(a) {
+      var d = a.detalle, caja = h('details', { class: 'ver' }, h('summary', { texto: 'Ver detalle' }));
+      if (d.antes !== undefined || d.despues !== undefined) {
+        caja.appendChild(h('div', { class: 'cambio' },
+          h('div', null, h('h4', { texto: 'Valor anterior' }), h('pre', { class: 'json', texto: d.antes === null ? '(no existía)' : JSON.stringify(d.antes, null, 2) })),
+          h('div', null, h('h4', { texto: 'Valor nuevo' }), h('pre', { class: 'json', texto: JSON.stringify(d.despues, null, 2) }))));
+      } else {
+        caja.appendChild(h('pre', { class: 'json', texto: JSON.stringify(d, null, 2) }));
+      }
+      return caja;
+    }
+
+    function pintar(f) {
+      var cont = document.getElementById('resultado');
+      MS.vaciar(cont);
+      var lista = D.AUDITORIA.filter(function (a) {
+        var fa = fechaDe(a.fecha);
+        if (f.desde && fa < f.desde) { return false; }
+        if (f.hasta && fa > f.hasta) { return false; }
+        if (f.usuario === '__sin' && a.usuario !== '') { return false; }
+        if (f.usuario !== 'Todos' && f.usuario !== '__sin' && a.usuario !== f.usuario) { return false; }
+        if (f.entidad !== 'Todas' && a.entidad !== f.entidad) { return false; }
+        return true;
+      });
+      document.getElementById('cuenta').textContent = lista.length + (lista.length === 1 ? ' registro' : ' registros');
+      if (lista.length === 0) {
+        cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('p', { class: 'sin-resultados', texto: 'No hay registros para los filtros elegidos.' })));
+        return;
+      }
+      var cuerpo = h('tbody');
+      lista.forEach(function (a) {
+        cuerpo.appendChild(h('tr', null,
+          h('td', { class: 'nw', texto: a.fecha }), h('td', { texto: a.usuario || '(sin usuario)' }), h('td', { texto: ACCIONES[a.accion] || a.accion }),
+          h('td', { texto: ENTIDADES[a.entidad] + (a.entidadId ? ' n.º ' + a.entidadId : '') }), h('td', null, detalle(a))));
+      });
+      cont.appendChild(h('div', { class: 'tabla-contenedor' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', { texto: 'Fecha' }), h('th', { texto: 'Usuario' }), h('th', { texto: 'Acción' }), h('th', { texto: 'Registro afectado' }), h('th', { texto: 'Detalle del cambio' }))), cuerpo)));
+    }
+    pintar({ desde: null, hasta: null, usuario: 'Todos', entidad: 'Todas' });
+
+    MS.formulario(document.getElementById('form'), {
+      textoOcupado: 'Consultando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true, fd = null, fh = null;
+        if (desde.value !== '') { fd = MS.V.fecha(desde.value); if (!fd) { MS.error(desde, 'Ingrese una fecha que exista (DD-MM-AAAA)'); ok = false; } }
+        if (hasta.value !== '') { fh = MS.V.fecha(hasta.value); if (!fh) { MS.error(hasta, 'Ingrese una fecha que exista (DD-MM-AAAA)'); ok = false; } }
+        if (fd && fh && fh < fd) { MS.error(hasta, 'La fecha Hasta no puede ser anterior a Desde'); ok = false; }
+        return ok;
+      },
+      procesar: function () {
+        pintar({ desde: desde.value ? MS.V.fecha(desde.value) : null, hasta: hasta.value ? MS.V.fecha(hasta.value) : null, usuario: usuario.value, entidad: entidad.value });
+      }
+    });
+  </script>
+</body>
+</html>

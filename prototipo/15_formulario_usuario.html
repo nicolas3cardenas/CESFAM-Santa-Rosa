@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Formulario de usuario · CESFAM Santa Rosa</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script src="app.js"></script>
+  <noscript><style>body { opacity: 1; }</style></noscript>
+</head>
+<body data-pagina="15">
+  <main id="contenido">
+    <p class="migas"><a href="14_lista_usuarios.html">Usuarios</a> › <span id="miga">Nuevo usuario</span></p>
+    <h1 id="titulo">Nuevo usuario</h1>
+    <p class="texto-2">Los campos con asterisco (*) son obligatorios.</p>
+
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <form id="form" class="tarjeta formulario" novalidate>
+      <div class="campo">
+        <label for="nombre">Nombre *</label>
+        <input id="nombre" type="text" autocomplete="off">
+        <span class="ayuda">De 1 a 100 caracteres.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="campo">
+        <label for="correo">Correo *</label>
+        <input id="correo" type="text" inputmode="email" autocomplete="off">
+        <span class="ayuda">Hasta 100 caracteres. Cada persona usa un correo distinto.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <div class="fila">
+        <div class="campo">
+          <label for="rol">Rol *</label>
+          <select id="rol"></select>
+          <p class="campo-error" role="alert"></p>
+        </div>
+        <div class="campo">
+          <label for="programa">Programa</label>
+          <select id="programa"></select>
+          <span class="ayuda" id="ayuda-programa">Obligatorio solo para el rol Jefe de Programa.</span>
+          <p class="campo-error" role="alert"></p>
+        </div>
+      </div>
+      <div class="campo" id="campo-clave" style="max-width:420px">
+        <label for="clave">Contraseña inicial *</label>
+        <div class="con-ojo">
+          <input id="clave" type="password" autocomplete="new-password">
+          <button type="button" class="btn-ojo" id="ojo" aria-pressed="false">Mostrar</button>
+        </div>
+        <span class="ayuda">De 8 a 64 caracteres. La persona podrá cambiarla al ingresar.</span>
+        <p class="campo-error" role="alert"></p>
+      </div>
+      <p id="nota-clave" class="texto-2 pequeno" hidden>La contraseña no se cambia desde esta pantalla: la persona la cambia al ingresar o usa «Olvidé mi contraseña».</p>
+
+      <div class="acciones">
+        <button type="submit" class="btn btn-primario">Guardar</button>
+        <a class="btn btn-secundario" href="14_lista_usuarios.html">Cancelar</a>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    var D = MS.datos, $ = function (id) { return document.getElementById(id); };
+    var form = $('form'), nombre = $('nombre'), correo = $('correo'), rol = $('rol'), programa = $('programa'), clave = $('clave');
+    var editando = null;
+
+    MS.opciones(rol, D.ROLES_LISTA, '', 'Seleccione un rol');
+    MS.opciones(programa, D.PROGRAMAS, '', 'Seleccione un programa');
+    MS.verClave(clave, $('ojo'));
+
+    var idEdicion = MS.param('id');
+    if (idEdicion !== null) {
+      D.USUARIOS.forEach(function (u) { if (u.id === Number(idEdicion)) { editando = u; } });
+      if (!editando) {
+        MS.aviso('error', 'Usuario no encontrado');
+        form.hidden = true;
+      } else {
+        $('titulo').textContent = 'Editar usuario'; $('miga').textContent = editando.nombre;
+        nombre.value = editando.nombre; correo.value = editando.correo; rol.value = editando.rol; programa.value = editando.programa;
+        $('campo-clave').hidden = true; $('nota-clave').hidden = false;      // en la edición no se pide contraseña
+      }
+    }
+
+    // El programa solo se elige con el rol Jefe de Programa; con otro rol queda vacío y deshabilitado
+    function ajustarPrograma() {
+      var jefe = rol.value === 'Jefe de Programa';
+      if (!jefe) { programa.value = ''; MS.error(programa, ''); }
+      programa.disabled = !jefe;
+    }
+    rol.addEventListener('change', ajustarPrograma);
+    ajustarPrograma();
+
+    MS.formulario(form, {
+      textoOcupado: 'Guardando…',
+      validar: function () {
+        MS.aviso(null);
+        var ok = true;
+        function falla(campo, mensaje) { MS.error(campo, mensaje); ok = false; }
+        if (!MS.V.largo(nombre.value, 1, 100)) { falla(nombre, 'Escriba un nombre de 1 a 100 caracteres'); }
+        if (!MS.V.correo(correo.value)) { falla(correo, 'Escriba un correo válido, sin espacios y de hasta 100 caracteres (por ejemplo nombre@dominio.cl)'); }
+        else {
+          var repetido = D.USUARIOS.some(function (u) { return u.correo.toLowerCase() === correo.value.toLowerCase() && u !== editando; });
+          if (repetido) { falla(correo, 'Ya existe un usuario con ese correo'); }
+        }
+        if (rol.value === '') { falla(rol, 'Seleccione un rol'); }
+        if (rol.value === 'Jefe de Programa' && programa.value === '') { falla(programa, 'Seleccione el programa del Jefe de Programa'); }
+        if (!editando && !MS.V.clave(clave.value)) { falla(clave, 'La contraseña debe tener entre 8 y 64 caracteres'); }
+        return ok;
+      },
+      procesar: function () {
+        MS.aviso('exito', (editando ? 'Usuario actualizado' : 'Usuario creado') + '. Queda en la auditoría (demostración: el prototipo no conserva el cambio). En el sistema real solo se guarda la huella de la contraseña, nunca la contraseña.');
+      }
+    });
+  </script>
+</body>
+</html>
