@@ -1,12 +1,50 @@
 // Pantallas 04 (dashboard), 05 (reportes), 06 (comparativo anual), 07 (detalle del indicador) y 08 (exportar datos).
 import { useState } from 'react';
 import { api } from '../api.js';
+import { Icono } from '../iconos.jsx';
 import { Link, useQuery } from '../router.jsx';
 import { useSesion } from '../sesion.jsx';
 import {
   AvisoDe, Aviso, BarraFila, Boton, Campo, Cargando, Chip, manejarError, propsCampo, useDatos, useEnfocarError, useEnvio, useTitulo
 } from '../ui.jsx';
 import { TEXTO_ESTADO, V, ancho, fechaHora, fechaIso, nombrePeriodo, numero, porcentaje } from '../util.js';
+
+// Anillo con la composición de los indicadores del período: cuántos cumplen, están en riesgo, no cumplen o aún no se calculan
+function AnilloCumplimiento({ resumen, total }) {
+  const sinCalcular = Math.max(0, total - resumen.cumple - resumen.riesgo - resumen.nocumple);
+  const trozos = [
+    { n: resumen.cumple, color: 'var(--cumple)', nombre: 'cumplen' },
+    { n: resumen.riesgo, color: 'var(--riesgo)', nombre: 'en riesgo' },
+    { n: resumen.nocumple, color: 'var(--error)', nombre: 'no cumplen' },
+    { n: sinCalcular, color: 'var(--deshabilitado)', nombre: 'sin calcular' }
+  ].filter((t) => t.n > 0);
+  const radio = 52;
+  const vuelta = 2 * Math.PI * radio;
+  const hueco = trozos.length > 1 ? 3 : 0;
+  let acumulado = 0;
+  const descripcion = `${resumen.cumple} de ${total} indicadores cumplen su meta`;
+  return (
+    <section className="tarjeta anillo-tarjeta" aria-label="Cumplimiento general del período">
+      <div className="anillo" role="img" aria-label={`${descripcion}. ${trozos.map((t) => `${t.n} ${t.nombre}`).join(', ')}.`}>
+        <svg viewBox="0 0 128 128" aria-hidden="true" focusable="false">
+          <circle className="anillo-pista" cx="64" cy="64" r={radio} />
+          {trozos.map((t) => {
+            const largo = (t.n / total) * vuelta;
+            const desde = acumulado;
+            acumulado += largo;
+            return (
+              <circle key={t.nombre} className="anillo-trozo" cx="64" cy="64" r={radio} stroke={t.color}
+                strokeDasharray={`${Math.max(largo - hueco, 0.5)} ${vuelta}`} strokeDashoffset={-desde} />
+            );
+          })}
+        </svg>
+        <div className="anillo-centro"><strong>{resumen.cumple}</strong><span>de {total}</span></div>
+      </div>
+      <p className="anillo-texto">Cumplen su meta</p>
+      {sinCalcular > 0 && <p className="anillo-nota">{sinCalcular} sin calcular</p>}
+    </section>
+  );
+}
 
 const textoResultado = (fila) => {
   if (fila.estado === 'sin_poblacion') { return 'Falta ingresar la población'; }
@@ -56,10 +94,13 @@ export function Dashboard() {
               {permisos.ingresarPoblacion ? <Link a="/poblacion">Ingresar población</Link> : 'Pídala a la Subdirección o al Gestor de Información.'}
             </Aviso>
           )}
-          <div className="tarjetas">
-            <div className="tarjeta-dato cumple"><div className="cifra">{d.resumen.cumple}</div>Indicadores que cumplen</div>
-            <div className="tarjeta-dato riesgo"><div className="cifra">{d.resumen.riesgo}</div>Indicadores en riesgo</div>
-            <div className="tarjeta-dato nocumple"><div className="cifra">{d.resumen.nocumple}</div>Indicadores que no cumplen</div>
+          <div className="resumen">
+            {d.indicadores.length > 0 && <AnilloCumplimiento resumen={d.resumen} total={d.indicadores.length} />}
+            <div className="tarjetas">
+              <div className="tarjeta-dato cumple"><span className="tarjeta-icono"><Icono nombre="cumple" /></span><div className="cifra">{d.resumen.cumple}</div>Indicadores que cumplen</div>
+              <div className="tarjeta-dato riesgo"><span className="tarjeta-icono"><Icono nombre="riesgo" /></span><div className="cifra">{d.resumen.riesgo}</div>Indicadores en riesgo</div>
+              <div className="tarjeta-dato nocumple"><span className="tarjeta-icono"><Icono nombre="nocumple" /></span><div className="cifra">{d.resumen.nocumple}</div>Indicadores que no cumplen</div>
+            </div>
           </div>
 
           <section className="tarjeta">
@@ -278,7 +319,7 @@ export function Comparativo() {
         <>
           <section className="tarjeta">
             <h2>{r.anioActual} frente a {r.anioComparar}</h2>
-            <div className="grafico" role="img" aria-label="Gráfico de barras que compara cada indicador entre dos años">
+            <div className="grafico grafico-comparar" role="img" aria-label="Gráfico de barras que compara cada indicador entre dos años">
               {r.indicadores.map((i) => (
                 <div className="barra-fila" key={i.indicadorId}>
                   <span className="barra-nombre">{i.nombre}</span>
@@ -436,7 +477,7 @@ export function Detalle({ params }) {
           {historial.length > 0 && (
             <div style={{ marginTop: 16 }}>
               <h3>Evolución mensual</h3>
-              <div className="grafico">
+              <div className="grafico grafico-meses">
                 {historial.map((h) => (
                   <BarraFila key={h.periodo} nombre={h.periodo} valor={h.resultado === null ? 0 : h.resultado} estado={h.estado}
                     meta={ind.metaNacional} texto={h.resultado === null ? 'Sin dato' : porcentaje(h.resultado)} />

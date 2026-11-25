@@ -56,14 +56,15 @@ El backend ya acepta peticiones desde `http://localhost:5173`. Si Vite usara otr
 | `src/api.js` | Cliente de la API: token en memoria, renovación, 401/403, descargas, subida de archivos |
 | `src/sesion.jsx` | Sesión, catálogos, mensajes flash entre pantallas |
 | `src/router.jsx` | Enrutador con la API de historial |
-| `src/layout.jsx` | Menú lateral según permisos, barra superior, tarjeta de acceso |
+| `src/layout.jsx` | Menú lateral agrupado según permisos, barra superior con rol y usuario, pantallas de acceso con panel de marca |
+| `src/iconos.jsx` | Íconos SVG propios del menú y de los estados (sin librerías) |
 | `src/ui.jsx` | Componentes comunes (campos, avisos, botones con guarda de doble clic, paginación, confirmación) |
 | `src/util.js` | Validaciones y formatos (fechas en hora de Chile, números con coma decimal) |
 | `src/pantallas/auth.jsx` | 01 Inicio de sesión, 02 Olvidé mi contraseña / restablecer, 03 Cambiar contraseña |
 | `src/pantallas/consultas.jsx` | 04 Dashboard, 05 Reportes, 06 Comparativo, 07 Detalle, 08 Exportar |
 | `src/pantallas/cargas.jsx` | 09 Carga de REM, 10 Resultado de la validación, 11 Ingreso de población |
 | `src/pantallas/administracion.jsx` | 12–13 Indicadores, 14–15 Usuarios, 16 Auditoría, 17 Acceso denegado |
-| `src/estilos.css` | Estilos del prototipo |
+| `src/estilos.css` | Guía de estilo única: colores de marca, tarjetas, tablas, formularios, etiquetas de estado, gráfico de barras, anillo de cumplimiento, versión para tableta y teléfono |
 
 ## Pantallas, rutas del navegador y rutas de la API
 
@@ -84,6 +85,14 @@ El backend ya acepta peticiones desde `http://localhost:5173`. Si Vite usara otr
 | 14 y 15 Usuarios | `/usuarios`, `/usuarios/nuevo`, `/usuarios/:id/editar` | `GET /usuarios`, `GET/POST/PUT /usuarios/:id`, `PATCH /usuarios/:id/estado` | `gestionarUsuarios` |
 | 16 Auditoría | `/auditoria` | `GET /auditoria` | `verAuditoria` |
 | 17 Acceso denegado | `/acceso-denegado` | (cualquier respuesta `403`) | — |
+
+## Diseño
+
+- Identidad del informe (azul `#0B5C8E` y azul marino `#083D5E`) con jerarquía clara: menú lateral agrupado (Consulta, Datos, Administración), barra superior con el rol y las iniciales de la persona, tarjetas con esquinas redondeadas y tablas con filas resaltadas al pasar el cursor.
+- El estado de un indicador **nunca depende solo del color**: cada etiqueta lleva símbolo y texto (Cumple, En riesgo, No cumple, Sin población).
+- Dashboard: anillo con la composición de los indicadores, tres cifras y barras con la meta marcada. El detalle de cada indicador muestra "Cómo se calculó este resultado" con numerador ÷ denominador × 100.
+- Sin librerías de diseño ni fuentes de internet: funciona sin conexión y no cambia `package.json`. Tipografía del sistema (Segoe UI en Windows), tamaños pensados para proyector, foco visible con teclado y animaciones que se desactivan si el sistema lo pide.
+- Todo el aspecto está en `src/estilos.css` (variables de color al inicio): cambiar un color ahí lo cambia en todas las pantallas.
 
 ## Reglas de seguridad y de comportamiento que cumple
 

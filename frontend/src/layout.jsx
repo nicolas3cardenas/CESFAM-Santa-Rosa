@@ -1,42 +1,30 @@
-// Estructura de las pantallas: con menú lateral y barra superior (Shell) o centrada, sin menú (Acceso).
+// Estructura de las pantallas: con menú lateral y barra superior (Shell) o con panel de marca y formulario, sin menú (Acceso).
 import { useEffect, useRef, useState } from 'react';
+import { Icono } from './iconos.jsx';
 import { Link, useRuta } from './router.jsx';
 import { useSesion, inicioDe } from './sesion.jsx';
 import { Logo, Aviso } from './ui.jsx';
 import { NOMBRE_SISTEMA } from './util.js';
 
-const ICONOS = {
-  dashboard: <path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z" />,
-  reportes: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
-  comparativo: <path d="M7 4v16M17 4v16M3 8l4-4 4 4M13 16l4 4 4-4" />,
-  exportar: <path d="M12 3v12M7 10l5 5 5-5M4 21h16" />,
-  carga: <path d="M12 21V9M7 14l5-5 5 5M4 3h16" />,
-  poblacion: <><circle cx="9" cy="8" r="3.5" /><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M17 5a3 3 0 010 6M22 20c0-2.5-1.5-4.5-4-5.3" /></>,
-  indicadores: <path d="M4 6h16M4 12h16M4 18h10" />,
-  usuarios: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" /></>,
-  auditoria: <path d="M12 8v5l3 2M21 12a9 9 0 11-3-6.7M21 4v5h-5" />,
-  menu: <path d="M4 6h16M4 12h16M4 18h16" />
-};
-function Icono({ nombre }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {ICONOS[nombre]}
-    </svg>
-  );
-}
-
-// [ruta, permiso que la habilita, texto, ícono]
+// [ruta, permiso que la habilita, texto, ícono, grupo del menú]
 const MENU = [
-  ['/dashboard', 'dashboard', 'Dashboard', 'dashboard'],
-  ['/reportes', 'reportes', 'Reportes', 'reportes'],
-  ['/comparativo', 'comparativo', 'Comparativo anual', 'comparativo'],
-  ['/exportar', 'exportar', 'Exportar datos', 'exportar'],
-  ['/cargas', 'cargarRem', 'Carga de REM', 'carga'],
-  ['/poblacion', 'ingresarPoblacion', 'Ingreso de población', 'poblacion'],
-  ['/indicadores', 'parametrizarIndicadores', 'Indicadores', 'indicadores'],
-  ['/usuarios', 'gestionarUsuarios', 'Usuarios', 'usuarios'],
-  ['/auditoria', 'verAuditoria', 'Auditoría de cambios', 'auditoria']
+  ['/dashboard', 'dashboard', 'Dashboard', 'dashboard', 'Consulta'],
+  ['/reportes', 'reportes', 'Reportes', 'reportes', 'Consulta'],
+  ['/comparativo', 'comparativo', 'Comparativo anual', 'comparativo', 'Consulta'],
+  ['/exportar', 'exportar', 'Exportar datos', 'exportar', 'Consulta'],
+  ['/cargas', 'cargarRem', 'Carga de REM', 'carga', 'Datos'],
+  ['/poblacion', 'ingresarPoblacion', 'Ingreso de población', 'poblacion', 'Datos'],
+  ['/indicadores', 'parametrizarIndicadores', 'Indicadores', 'indicadores', 'Datos'],
+  ['/usuarios', 'gestionarUsuarios', 'Usuarios', 'usuarios', 'Administración'],
+  ['/auditoria', 'verAuditoria', 'Auditoría de cambios', 'auditoria', 'Administración']
 ];
+
+// Iniciales para el círculo del usuario: "María Pérez Soto" → "MP"
+function iniciales(nombre) {
+  const partes = String(nombre || '').trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) { return '?'; }
+  return (partes[0][0] + (partes.length > 1 ? partes[1][0] : '')).toUpperCase();
+}
 
 export function Shell({ children }) {
   const { usuario, permisos, cerrarSesion, errorCatalogos, cargarCatalogos } = useSesion();
@@ -60,23 +48,37 @@ export function Shell({ children }) {
   const activo = (r) => rutaMenu === r || rutaMenu.startsWith(`${r}/`);
   const inicio = inicioDe(permisos);
 
+  // Las opciones que la persona puede usar, agrupadas. Si solo hay un grupo no se escribe su título.
+  const visibles = MENU.filter((m) => permisos[m[1]]);
+  const grupos = [];
+  visibles.forEach((m) => {
+    let g = grupos.find((x) => x.titulo === m[4]);
+    if (!g) { g = { titulo: m[4], items: [] }; grupos.push(g); }
+    g.items.push(m);
+  });
+
   return (
     <div className={`shell${menuAbierto ? ' menu-abierto' : ''}`}>
       {menuAbierto && <div className="velo" onClick={() => setMenuAbierto(false)} />}
       <aside className="sidebar" id="menu-lateral" aria-label="Menú principal">
         <div className="sidebar-logo">
-          <Link a={inicio} className="logo" aria-label={`${NOMBRE_SISTEMA}, ir al inicio`}><Logo /></Link>
+          <Link a={inicio} className="sidebar-marca" aria-label={`${NOMBRE_SISTEMA}, ir al inicio`}><Logo claro /></Link>
         </div>
         <nav>
-          <ul>
-            {MENU.filter((m) => permisos[m[1]]).map((m) => (
-              <li key={m[0]}>
-                <Link a={m[0]} className={activo(m[0]) ? 'activo' : undefined} aria-current={activo(m[0]) ? 'page' : undefined}>
-                  <Icono nombre={m[3]} /><span>{m[2]}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {grupos.map((g, n) => (
+            <div className="menu-grupo" key={g.titulo}>
+              {grupos.length > 1 && <p className="menu-grupo-titulo" id={`grupo-${n}`}>{g.titulo}</p>}
+              <ul aria-labelledby={grupos.length > 1 ? `grupo-${n}` : undefined}>
+                {g.items.map((m) => (
+                  <li key={m[0]}>
+                    <Link a={m[0]} className={activo(m[0]) ? 'activo' : undefined} aria-current={activo(m[0]) ? 'page' : undefined}>
+                      <Icono nombre={m[3]} /><span>{m[2]}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
       </aside>
       <div className="principal">
@@ -85,16 +87,21 @@ export function Shell({ children }) {
             aria-expanded={menuAbierto ? 'true' : 'false'} onClick={() => setMenuAbierto(!menuAbierto)}>
             <Icono nombre="menu" />
           </button>
-          <span className="topbar-rol">{usuario.rol}{usuario.programa ? ` · ${usuario.programa}` : ''}</span>
+          <span className="topbar-rol">
+            <span className="rol-pastilla"><Icono nombre="escudo" />{usuario.rol}</span>
+            {usuario.programa && <span className="rol-programa">Programa {usuario.programa}</span>}
+          </span>
           <div className="usuario" ref={caja}>
             <button type="button" className="btn-usuario" aria-haspopup="true" aria-expanded={usuarioAbierto ? 'true' : 'false'}
               onClick={() => setUsuarioAbierto(!usuarioAbierto)}>
-              <span className="nombre">{usuario.nombre}</span><span aria-hidden="true">▾</span>
+              <span className="avatar" aria-hidden="true">{iniciales(usuario.nombre)}</span>
+              <span className="nombre">{usuario.nombre}</span>
+              <span className="flecha" aria-hidden="true"><Icono nombre="flecha" /></span>
             </button>
             {usuarioAbierto && (
               <div className="usuario-menu">
-                <Link a="/cambiar-clave">Cambiar contraseña</Link>
-                <button type="button" id="cerrar-sesion" onClick={cerrarSesion}>Cerrar sesión</button>
+                <Link a="/cambiar-clave"><Icono nombre="llave" />Cambiar contraseña</Link>
+                <button type="button" id="cerrar-sesion" onClick={cerrarSesion}><Icono nombre="salir" />Cerrar sesión</button>
               </div>
             )}
           </div>
@@ -113,16 +120,35 @@ export function Shell({ children }) {
   );
 }
 
-// Pantallas de acceso: una tarjeta centrada con el logo y sin menú
+// Pantallas de acceso: a la izquierda el panel de marca (qué hace el sistema) y a la derecha el formulario. Sin menú.
 export function Acceso({ children }) {
   useEffect(() => {
     document.body.classList.add('acceso');
     return () => document.body.classList.remove('acceso');
   }, []);
   return (
-    <main id="contenido">
-      <div className="centrado"><Logo grande /></div>
-      {children}
-    </main>
+    <div className="acceso-pagina">
+      <aside className="acceso-marca">
+        <svg className="acceso-cruz" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <path d="M17 2h6v13h13v6H23v13h-6V21H4v-6h13z" fill="currentColor" />
+        </svg>
+        <Logo claro grande />
+        <div className="acceso-texto">
+          <p className="acceso-lema">Metas sanitarias e indicadores IAAPS</p>
+          <p className="acceso-bajada">Cargue el REM, calcule el cumplimiento de cada indicador y haga seguimiento por programa.</p>
+          <ul className="acceso-puntos">
+            <li><Icono nombre="formula" /><span>Cada resultado muestra su fórmula: numerador ÷ denominador × 100.</span></li>
+            <li><Icono nombre="planilla" /><span>La planilla REM se valida antes de calcular.</span></li>
+            <li><Icono nombre="escudo" /><span>Cada cambio queda en el registro de auditoría.</span></li>
+          </ul>
+        </div>
+        <p className="acceso-pie">Proyecto Integrado · INACAP</p>
+      </aside>
+      <main id="contenido">
+        <div className="acceso-formulario">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }

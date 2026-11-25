@@ -6,12 +6,13 @@ export function useTitulo(texto) {
   useEffect(() => { document.title = `${texto} · ${NOMBRE_SISTEMA}`; }, [texto]);
 }
 
-export function Logo({ grande = false }) {
+// claro = para fondos oscuros (menú lateral y pantalla de acceso): círculo blanco y cruz azul
+export function Logo({ grande = false, claro = false }) {
   return (
-    <div className={`logo${grande ? ' logo-grande' : ''}`}>
+    <div className={`logo${grande ? ' logo-grande' : ''}${claro ? ' logo-claro' : ''}`}>
       <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true">
-        <circle cx="20" cy="20" r="20" fill="#0B5C8E" />
-        <path d="M17 9h6v8h8v6h-8v8h-6v-8H9v-6h8z" fill="#fff" />
+        <circle cx="20" cy="20" r="20" fill={claro ? '#FFFFFF' : '#0B5C8E'} />
+        <path d="M17 9h6v8h8v6h-8v8h-6v-8H9v-6h8z" fill={claro ? '#0B5C8E' : '#FFFFFF'} />
       </svg>
       <span className="logo-texto">
         <span className="logo-nombre">{NOMBRE_SISTEMA}</span>
@@ -131,7 +132,7 @@ export function Chip({ estado }) {
   return (
     <span className={`chip ${clase}`}>
       {SIMBOLO[estado] && <span aria-hidden="true">{SIMBOLO[estado]}</span>}
-      {TEXTO_ESTADO[estado] || estado}
+      {TEXTO_ESTADO[estado] || estado || 'Sin datos'}
     </span>
   );
 }
